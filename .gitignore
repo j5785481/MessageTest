@@ -1,0 +1,15 @@
+bin/
+obj/
+/packages/
+riderModule.iml
+/_ReSharper.Caches/
+.idea
+.vs
+packages
+*.user
+TestResults
+*.nupkg
+
+# Runtime Config
+App.*.confi
+agents/
