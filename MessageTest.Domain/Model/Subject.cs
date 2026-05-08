@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using ProtoBuf;
 
-namespace MessageTest.Domain
+namespace MessageTest.Domain.Model
 {
-    [ProtoContract]
     public class Subject
     {
         public int Id { get; set; }
@@ -16,5 +14,7 @@ namespace MessageTest.Domain
         public int CreatorId { get; set; }
 
         public DateTime CreatedAt { get; set; }
+
+        public int MessageCount { get; set; }
     }
 }
