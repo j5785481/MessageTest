@@ -14,5 +14,7 @@ namespace MessageTest.Domain
         public string Content { get; set; } = "";
 
         public int CreatorId { get; set; }
+
+        public DateTime CreatedAt { get; set; }
     }
 }
