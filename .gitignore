@@ -13,3 +13,6 @@ TestResults
 # Runtime Config
 App.*.confi
 agents/
+
+*.dbmdl
+*.jfm
