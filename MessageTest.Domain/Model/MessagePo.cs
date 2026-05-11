@@ -8,9 +8,9 @@ namespace MessageTest.Domain.Model
 {
     public class MessagePo
     {
-        public string f_sujectId { get; set; }
+        public int f_subjectId { get; set; }
 
-        public string f_id { get; set; }
+        public Guid f_id { get; set; }
 
         public string f_content { get; set; }
 

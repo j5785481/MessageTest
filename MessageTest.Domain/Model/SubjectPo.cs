@@ -8,13 +8,13 @@ namespace MessageTest.Domain.Model
 {
     public class SubjectPo
     {
-        public string f_id { get; set; }
+        public int f_id { get; set; }
 
         public string f_title { get; set; }
 
         public string f_content { get; set; }
 
-        public int f_creatorId { get; set; }
+        public string f_creatorId { get; set; }
 
         public DateTime f_createdAt { get; set; }
 

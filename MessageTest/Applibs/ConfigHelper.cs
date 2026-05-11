@@ -9,6 +9,17 @@ namespace MessageTest.Applibs
 {
     internal class ConfigHelper
     {
+        public static string ServiceUrl
+        {
+            get
+                => $"http://*:8085";
+        }
+
+        /// <summary>
+        ///     SQL連線字串
+        /// </summary>
+        public static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["MessageTest"].ConnectionString;
+
         /// <summary>
 		///     Redis連線字串
 		/// </summary>

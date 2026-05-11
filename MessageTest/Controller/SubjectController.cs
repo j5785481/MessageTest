@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
@@ -12,18 +13,16 @@ namespace MessageTest.Controller
 {
     public class SubjectController : ApiController
     {
-        private readonly IHubClient hubClient;
         private readonly ISubjectRepository subjectRepository;
         private readonly ILifetimeScope lifetimeScope;
 
-        public SubjectController(ISubjectRepository subjectRepository,
-            IHubClient hubClient, ILifetimeScope lifetimeScope)
+        public SubjectController(ISubjectRepository subjectRepository, ILifetimeScope lifetimeScope)
         {
             this.subjectRepository = subjectRepository;
-            this.hubClient = hubClient;
             this.lifetimeScope = lifetimeScope;
         }
 
+        [HttpPost]
         public HttpResponseMessage PostSubject([FromBody] AddSubjectRequestDto subject)
         {
             try
@@ -34,9 +33,12 @@ namespace MessageTest.Controller
                 {
                     throw addResult.exception;
                 }
-
                 var result = new HttpResponseMessage(HttpStatusCode.OK);
-                result.Content = new StringContent(JsonConvert.SerializeObject(addResult.subject));
+                result.Content = new StringContent(JsonConvert.SerializeObject(new AddSubjectResponseDto
+                {
+                    Status = AddSubjectStatus.Success,
+                    Subject = addResult.subject
+                }));
                 return result;
             }
             catch (Exception ex)

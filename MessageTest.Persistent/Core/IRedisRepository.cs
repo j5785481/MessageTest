@@ -1,4 +1,4 @@
-﻿using ForumMessageSystem.Domain.Repository;
+﻿using MessageTest.Domain.Repository;
 using StackExchange.Redis;
 
 namespace ForumMessageSystem.Persistent.Core
