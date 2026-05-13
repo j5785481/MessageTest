@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageTest.Persistent", "M
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageTest.Tests", "MessageTest.Tests\MessageTest.Tests.csproj", "{19010275-7B16-46EA-880C-77BA1A424C75}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageTest.Lib", "MessageTest.Lib\MessageTest.Lib.csproj", "{8B5DF0EF-D6F2-43EA-8522-CBE335C5DFD4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,10 @@ Global
 		{19010275-7B16-46EA-880C-77BA1A424C75}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{19010275-7B16-46EA-880C-77BA1A424C75}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{19010275-7B16-46EA-880C-77BA1A424C75}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B5DF0EF-D6F2-43EA-8522-CBE335C5DFD4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B5DF0EF-D6F2-43EA-8522-CBE335C5DFD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B5DF0EF-D6F2-43EA-8522-CBE335C5DFD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B5DF0EF-D6F2-43EA-8522-CBE335C5DFD4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
