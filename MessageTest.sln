@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageTest.Tests", "Messag
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageTest.Persistent.Tests", "MessageTest.Persistent.Tests\MessageTest.Persistent.Tests.csproj", "{155B5723-69DD-43F5-AB2D-C69AA89B9A06}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageTest.Lib", "MessageTest.Lib\MessageTest.Lib.csproj", "{8B5DF0EF-D6F2-43EA-8522-CBE335C5DFD4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
