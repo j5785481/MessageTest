@@ -21,5 +21,20 @@ namespace MessageTest.Persistent.Mongo
         {
             throw new NotImplementedException();
         }
+
+        public (Exception exception, Subject subject) Delete(DeleteSubjectRequestDto req)
+        {
+            throw new NotImplementedException();
+        }
+
+        public (Exception exception, Subject subject) GetById(int subjectId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public (Exception exception, Subject subject) Query(QueryMessageCountRequestDto req)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

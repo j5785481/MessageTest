@@ -45,6 +45,12 @@
     <Compile Include="DTO\AddSubjectResponseDto.cs" />
     <Compile Include="DTO\AddSubjectStatus.cs" />
     <Compile Include="DTO\AddSubjectRequestDto.cs" />
+    <Compile Include="DTO\DeleteSubjectRequestDto.cs" />
+    <Compile Include="DTO\DeleteSubjectResponseDto.cs" />
+    <Compile Include="DTO\DeleteSubjectStatus.cs" />
+    <Compile Include="DTO\QueryMessageCountRequestDto.cs" />
+    <Compile Include="DTO\QueryMessageCountResponseDto.cs" />
+    <Compile Include="DTO\QueryMessageCountStatus.cs" />
     <Compile Include="Model\Message.cs" />
     <Compile Include="Model\MessagePo.cs" />
     <Compile Include="Model\Subject.cs" />

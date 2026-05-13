@@ -17,10 +17,12 @@ using Newtonsoft.Json;
 
 namespace MessageTest.Tests.Controller
 {
+    [TestClass]
     public class SubjectControllerTests
     {
         private Mock<ISubjectRepository> subjectRepository = new Mock<ISubjectRepository>();
         private Mock<ILifetimeScope> lifetimeScope = new Mock<ILifetimeScope>();
+
         [TestMethod]
         public void PostTest()
         {
@@ -57,6 +59,78 @@ namespace MessageTest.Tests.Controller
             Assert.IsNotNull(responseDto);
             Assert.AreEqual(AddSubjectStatus.Success, responseDto.Status);
             Assert.AreEqual(1, responseDto.Subject.Id); // 驗證是否拿到 Mock 給的 Id
+        }
+
+        [TestMethod]
+        public void DeleteTest()
+        {
+            var deleteSubjectReqDto = new DeleteSubjectRequestDto
+            {
+                UserId = "115051201",
+                Id = 1
+            };
+            var clientTimeStamp = 1778549400;
+            var timeStampTime = TimeStampHelper.ToLocalDateTime(clientTimeStamp);
+            subjectRepository.Setup(p => p.Delete(It.IsAny<DeleteSubjectRequestDto>()))
+                .Returns((null, new Subject()
+                {
+                    Id = 1,
+                    Title = "Test",
+                    Content = "Test",
+                    CreatorId = "115051201",
+                    CreatedAt = timeStampTime,
+                    MessageCount = 0
+                }));
+
+            var controller = new SubjectController(subjectRepository.Object, lifetimeScope.Object);
+            controller.Request = new HttpRequestMessage();
+            controller.Configuration = new HttpConfiguration();
+            var postResult = controller.DeleteSubject(deleteSubjectReqDto);
+
+            Assert.AreEqual(HttpStatusCode.OK, postResult.StatusCode);
+
+            var responseString = postResult.Content.ReadAsStringAsync().Result;
+            var responseDto = JsonConvert.DeserializeObject<DeleteSubjectResponseDto>(responseString);
+
+            Assert.IsNotNull(responseDto);
+            Assert.AreEqual(DeleteSubjectStatus.Success, responseDto.Status);
+            Assert.AreEqual(1, responseDto.Subject.Id); // 驗證是否拿到 Mock 給的 Id
+        }
+
+        [TestMethod]
+        public void QueryTest()
+        {
+            var queryMessageCountReqDto = new QueryMessageCountRequestDto
+            {
+                SubjectId = 1
+            };
+            var clientTimeStamp = 1778549400;
+            var timeStampTime = TimeStampHelper.ToLocalDateTime(clientTimeStamp);
+            subjectRepository.Setup(p => p.Query(It.IsAny<QueryMessageCountRequestDto>()))
+                .Returns((null, new Subject()
+                {
+                    Id = 1,
+                    Title = "Test",
+                    Content = "Test",
+                    CreatorId = "115051201",
+                    CreatedAt = timeStampTime,
+                    MessageCount = 0
+                }));
+
+            var controller = new SubjectController(subjectRepository.Object, lifetimeScope.Object);
+            controller.Request = new HttpRequestMessage();
+            controller.Configuration = new HttpConfiguration();
+            var postResult = controller.QueryMessageCount(queryMessageCountReqDto);
+
+            Assert.AreEqual(HttpStatusCode.OK, postResult.StatusCode);
+
+            var responseString = postResult.Content.ReadAsStringAsync().Result;
+            var responseDto = JsonConvert.DeserializeObject<QueryMessageCountResponseDto>(responseString);
+
+            Assert.IsNotNull(responseDto);
+            Assert.AreEqual(QueryMessageCountStatus.Success, responseDto.Status);
+            Assert.AreEqual(1, responseDto.Subject.Id); // 驗證是否拿到 Mock 給的 Id
+            Assert.AreEqual(0, responseDto.Subject.MessageCount);
         }
     }
 }

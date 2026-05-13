@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MessageTest.Domain.Model
 {
-    class Message
+    public class Message
     {
         public int SubjectId { get; set; }
 
