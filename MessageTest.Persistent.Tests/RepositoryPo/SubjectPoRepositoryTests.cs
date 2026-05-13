@@ -66,6 +66,10 @@ namespace MessageTest.Persistent.Tests.RepositoryPo
             Assert.AreEqual(addResult.subject.Title, "Test");
             int subjectId = 1;
             var getByIdResult = this.repo.GetById(subjectId);
+            Assert.IsNull(addResult.exception);
+            Assert.IsNotNull(addResult.subject);
+            Assert.AreEqual(addResult.subject.Id, 1);
+            Assert.AreEqual(addResult.subject.Title, "Test");
             var deleteSubjectReqDto = new DeleteSubjectRequestDto
             {
                 UserId = "115051302",
