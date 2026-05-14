@@ -9,7 +9,7 @@ using MessageTest.Persistent.Sql;
 namespace MessageTest.Persistent.Tests.RepositoryPo
 {
     [TestClass]
-    public class SubjectPoRepositoryTests
+    public class SubjectPoRepositoryTest
     {
         private const string connectionString = @"Data Source=DESKTOP-DMHFTKJ\SQLEXPRESS;database=MessageTest;Integrated Security=True";
 

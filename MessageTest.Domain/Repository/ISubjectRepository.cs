@@ -11,26 +11,24 @@ namespace MessageTest.Domain.Repository
     public interface ISubjectRepository
     {
         /// <summary>
-        /// 發布主題
+        /// 儲存主題
         /// </summary>
-        /// <param name="req">發布主題Request</param>
-        /// <returns>發布主題結果</returns>
-        Exception Add(AddSubjectRequestDto req);
+        /// <param name="subject">儲存的主題Request</param>
+        /// <returns>例外</returns>
+        Exception Save(Subject subject);
 
         /// <summary>
         /// 刪除主題
         /// </summary>
-        /// <param name="req">刪除主題Request</param>
-        /// <returns>刪除主題結果</returns>
-        Exception Delete(DeleteSubjectRequestDto req);
+        /// <param name="subjectId">刪除主題的ID</param>
+        /// <returns>例外</returns>
+        Exception Delete(int subjectId);
 
         /// <summary>
-        /// 查詢留言數
+        /// 查詢主題資訊by SubjectId
         /// </summary>
-        /// <param name="req">查詢主題留言數Request</param>
+        /// <param name="subjectId">刪除主題的ID</param>
         /// <returns>主題所有資訊</returns>
-        (Exception exception, Subject subject) Query(QueryMessageCountRequestDto req);
-
         (Exception exception, Subject subject) GetById(int subjectId);
     }
 }

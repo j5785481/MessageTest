@@ -40,24 +40,55 @@ namespace MessageTest.Persistent.Mongo
 
         private IMongoDatabase db { get; }
 
-        public Exception Add(AddSubjectRequestDto req)
+        public Exception Save(Subject subject)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var updateScript = Builders<Subject>.Update
+
+                    .SetOnInsert(p => p.Id, subject.Id)
+                    .SetOnInsert(p => p.Title, subject.Title)
+                    .SetOnInsert(p => p.Content, subject.Content)
+                    .SetOnInsert(p => p.CreatorId, subject.CreatorId)
+                    .SetOnInsert(p => p.CreatedAt, subject.CreatedAt)
+                    .Set(p => p.MessageCount, subject.MessageCount);
+                var filter = Builders<Subject>.Filter.Eq(p => p.Id, subject.Id);
+                collection.UpdateOne(filter, updateScript, new UpdateOptions
+                {
+                    IsUpsert = true
+                });
+                return null;
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
         }
 
-        public Exception Delete(DeleteSubjectRequestDto req)
+        public Exception Delete(int subjectId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                collection.DeleteOne(Builders<Subject>.Filter.Eq(p => p.Id, subjectId));
+                return null;
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
         }
 
         public (Exception exception, Subject subject) GetById(int subjectId)
         {
-            throw new NotImplementedException();
-        }
-
-        public (Exception exception, Subject subject) Query(QueryMessageCountRequestDto req)
-        {
-            throw new NotImplementedException();
+            try
+            {
+                var rs = collection.Find(Builders<Subject>.Filter.Eq(p => p.Id, subjectId)).FirstOrDefault();
+                return (null, rs);
+            }
+            catch (Exception ex)
+            {
+                return (ex, null);
+            }
         }
     }
 }
