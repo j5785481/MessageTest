@@ -111,7 +111,11 @@ namespace MessageTest.Persistent.Tests.RepositoryPo
             Assert.AreEqual(addResult.subject.Title, "Test");
 
             int subjectId = 1;
-            var getByIdResult = this.repo.GetById(subjectId);
+            var queryRequestDto = new QueryMessageCountRequestDto
+            {
+                SubjectId = 1
+            };
+            var getByIdResult = this.repo.Query(queryRequestDto);
             Assert.IsNull(getByIdResult.exception);
             Assert.IsNotNull(getByIdResult.subject);
             Assert.AreEqual(getByIdResult.subject.Id, 1);

@@ -135,7 +135,7 @@ namespace MessageTest.Persistent.Sql
                 using (var cn = new SqlConnection(this.connectionString))
                 {
                     var result = cn.QueryFirstOrDefault<SubjectPo>(
-                        "pro_messageQuery",
+                        "pro_subjectGetById",
                         new
                         {
                             f_id = req.SubjectId,
