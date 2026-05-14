@@ -20,7 +20,7 @@ namespace MessageTest.Tests.Controller
     [TestClass]
     public class SubjectControllerTests
     {
-        private Mock<ISubjectRepository> subjectRepository = new Mock<ISubjectRepository>();
+        private Mock<ISubjectPoRepository> subjectRepository = new Mock<ISubjectPoRepository>();
         private Mock<ILifetimeScope> lifetimeScope = new Mock<ILifetimeScope>();
 
         [TestMethod]

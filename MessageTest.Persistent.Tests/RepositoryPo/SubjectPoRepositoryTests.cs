@@ -13,7 +13,7 @@ namespace MessageTest.Persistent.Tests.RepositoryPo
     {
         private const string connectionString = @"Data Source=DESKTOP-DMHFTKJ\SQLEXPRESS;database=MessageTest;Integrated Security=True";
 
-        private ISubjectRepository repo;
+        private ISubjectPoRepository repo;
 
         [TestInitialize]
         public void Init()

@@ -9,7 +9,7 @@ using MessageTest.Domain.Repository;
 
 namespace MessageTest.Persistent.Sql
 {
-    public class SubjectPoRepository : ISubjectRepository
+    public class SubjectPoRepository : ISubjectPoRepository
     {
         /// <summary>
         /// 連線字串

@@ -16,12 +16,12 @@ namespace MessageTest.Controller
 {
     public class SubjectController : ApiController
     {
-        private readonly ISubjectRepository subjectRepository;
+        private readonly ISubjectPoRepository subjectPoRepository;
         private readonly ILifetimeScope lifetimeScope;
 
-        public SubjectController(ISubjectRepository subjectRepository, ILifetimeScope lifetimeScope)
+        public SubjectController(ISubjectPoRepository subjectRepository, ILifetimeScope lifetimeScope)
         {
-            this.subjectRepository = subjectRepository;
+            this.subjectPoRepository = subjectRepository;
             this.lifetimeScope = lifetimeScope;
         }
 
@@ -30,7 +30,7 @@ namespace MessageTest.Controller
         {
             try
             {
-                var addResult = this.subjectRepository.Add(input);
+                var addResult = this.subjectPoRepository.Add(input);
 
                 if (addResult.exception != null)
                 {
@@ -54,7 +54,7 @@ namespace MessageTest.Controller
         {
             try
             {
-                var deleteResult = this.subjectRepository.Delete(input);
+                var deleteResult = this.subjectPoRepository.Delete(input);
 
                 if (deleteResult.exception != null)
                 {
@@ -78,7 +78,7 @@ namespace MessageTest.Controller
         {
             try
             {
-                var queryResult = this.subjectRepository.Query(input);
+                var queryResult = this.subjectPoRepository.Query(input);
 
                 if (queryResult.exception != null)
                 {

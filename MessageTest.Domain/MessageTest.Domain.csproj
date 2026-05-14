@@ -58,6 +58,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Repository\IMessageRepository.cs" />
     <Compile Include="Repository\IRepository.cs" />
+    <Compile Include="Repository\ISubjectPoRepository.cs" />
     <Compile Include="Repository\ISubjectRepository.cs" />
     <Compile Include="TimeStampHelper.cs" />
   </ItemGroup>

@@ -8,21 +8,21 @@ using MessageTest.Domain.Model;
 
 namespace MessageTest.Domain.Repository
 {
-    public interface ISubjectRepository
+    public interface ISubjectPoRepository
     {
         /// <summary>
         /// 發布主題
         /// </summary>
         /// <param name="req">發布主題Request</param>
         /// <returns>發布主題結果</returns>
-        Exception Add(AddSubjectRequestDto req);
+        (Exception exception, Subject subject) Add(AddSubjectRequestDto req);
 
         /// <summary>
         /// 刪除主題
         /// </summary>
         /// <param name="req">刪除主題Request</param>
         /// <returns>刪除主題結果</returns>
-        Exception Delete(DeleteSubjectRequestDto req);
+        (Exception exception, Subject subject) Delete(DeleteSubjectRequestDto req);
 
         /// <summary>
         /// 查詢留言數
