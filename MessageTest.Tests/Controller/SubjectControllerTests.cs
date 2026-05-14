@@ -20,7 +20,8 @@ namespace MessageTest.Tests.Controller
     [TestClass]
     public class SubjectControllerTests
     {
-        private Mock<ISubjectPoRepository> subjectRepository = new Mock<ISubjectPoRepository>();
+        private Mock<ISubjectPoRepository> subjectPoRepository = new Mock<ISubjectPoRepository>();
+        private Mock<ISubjectRepository> subjectRepository = new Mock<ISubjectRepository>();
         private Mock<ILifetimeScope> lifetimeScope = new Mock<ILifetimeScope>();
 
         [TestMethod]
@@ -35,7 +36,7 @@ namespace MessageTest.Tests.Controller
                 CreateTimeStamp = 1778549400
             };
             var timeStampTime = TimeStampHelper.ToLocalDateTime(addSubjectReqDto.ClientTimeStamp);
-            subjectRepository.Setup(p => p.Add(It.IsAny<AddSubjectRequestDto>()))
+            subjectPoRepository.Setup(p => p.Add(It.IsAny<AddSubjectRequestDto>()))
                 .Returns((null, new Subject()
                 {
                     Id = 1,
@@ -45,13 +46,17 @@ namespace MessageTest.Tests.Controller
                     CreatedAt = timeStampTime,
                     MessageCount = 0
                 }));
+            subjectRepository.Setup(p => p.Save(It.IsAny<Subject>()))
+                .Returns((Exception)null);
 
-            var controller = new SubjectController(subjectRepository.Object, lifetimeScope.Object);
+            var controller = new SubjectController(subjectPoRepository.Object, subjectRepository.Object, lifetimeScope.Object);
             controller.Request = new HttpRequestMessage();
             controller.Configuration = new HttpConfiguration();
             var postResult = controller.PostSubject(addSubjectReqDto);
 
             Assert.AreEqual(HttpStatusCode.OK, postResult.StatusCode);
+
+            subjectRepository.Verify(p => p.Save(It.Is<Subject>(s => s.Id == 1)), Times.Once, "Mongo Save 應該要被呼叫一次且 Id 要對應");
 
             var responseString = postResult.Content.ReadAsStringAsync().Result;
             var responseDto = JsonConvert.DeserializeObject<AddSubjectResponseDto>(responseString);
@@ -71,7 +76,7 @@ namespace MessageTest.Tests.Controller
             };
             var clientTimeStamp = 1778549400;
             var timeStampTime = TimeStampHelper.ToLocalDateTime(clientTimeStamp);
-            subjectRepository.Setup(p => p.Delete(It.IsAny<DeleteSubjectRequestDto>()))
+            subjectPoRepository.Setup(p => p.Delete(It.IsAny<DeleteSubjectRequestDto>()))
                 .Returns((null, new Subject()
                 {
                     Id = 1,
@@ -81,13 +86,16 @@ namespace MessageTest.Tests.Controller
                     CreatedAt = timeStampTime,
                     MessageCount = 0
                 }));
-
-            var controller = new SubjectController(subjectRepository.Object, lifetimeScope.Object);
+            subjectRepository.Setup(p => p.Delete(It.IsAny<int>()))
+                .Returns((Exception)null);
+            var controller = new SubjectController(subjectPoRepository.Object, subjectRepository.Object, lifetimeScope.Object);
             controller.Request = new HttpRequestMessage();
             controller.Configuration = new HttpConfiguration();
             var postResult = controller.DeleteSubject(deleteSubjectReqDto);
 
             Assert.AreEqual(HttpStatusCode.OK, postResult.StatusCode);
+
+            subjectRepository.Verify(p => p.Delete(It.Is<int>(s => s == 1)), Times.Once, "Mongo Save 應該要被呼叫一次且 Id 要對應");
 
             var responseString = postResult.Content.ReadAsStringAsync().Result;
             var responseDto = JsonConvert.DeserializeObject<DeleteSubjectResponseDto>(responseString);
@@ -100,13 +108,13 @@ namespace MessageTest.Tests.Controller
         [TestMethod]
         public void QueryTest()
         {
-            var queryMessageCountReqDto = new QueryMessageCountRequestDto
+            var queryMessageCountReqDto = new QuerySubjectRequestDto
             {
                 SubjectId = 1
             };
             var clientTimeStamp = 1778549400;
             var timeStampTime = TimeStampHelper.ToLocalDateTime(clientTimeStamp);
-            subjectRepository.Setup(p => p.Query(It.IsAny<QueryMessageCountRequestDto>()))
+            subjectRepository.Setup(p => p.GetById(It.IsAny<int>()))
                 .Returns((null, new Subject()
                 {
                     Id = 1,
@@ -116,19 +124,31 @@ namespace MessageTest.Tests.Controller
                     CreatedAt = timeStampTime,
                     MessageCount = 0
                 }));
-
-            var controller = new SubjectController(subjectRepository.Object, lifetimeScope.Object);
+            subjectPoRepository.Setup(p => p.Query(It.IsAny<QuerySubjectRequestDto>()))
+                .Returns((null, new Subject()
+                {
+                    Id = 1,
+                    Title = "Test",
+                    Content = "Test",
+                    CreatorId = "115051201",
+                    CreatedAt = timeStampTime,
+                    MessageCount = 0
+                }));
+            var controller = new SubjectController(subjectPoRepository.Object, subjectRepository.Object, lifetimeScope.Object);
             controller.Request = new HttpRequestMessage();
             controller.Configuration = new HttpConfiguration();
             var postResult = controller.QueryMessageCount(queryMessageCountReqDto);
 
             Assert.AreEqual(HttpStatusCode.OK, postResult.StatusCode);
 
+            subjectRepository.Verify(p => p.GetById(It.Is<int>(s => s == 1)), Times.Once, "Mongo Save 應該要被呼叫一次且 Id 要對應");
+            subjectPoRepository.Verify(p => p.GetById(It.Is<int>(s => s == 1)), Times.Never, "MMSQL不應該被call");
+
             var responseString = postResult.Content.ReadAsStringAsync().Result;
-            var responseDto = JsonConvert.DeserializeObject<QueryMessageCountResponseDto>(responseString);
+            var responseDto = JsonConvert.DeserializeObject<QuerySubjectResponseDto>(responseString);
 
             Assert.IsNotNull(responseDto);
-            Assert.AreEqual(QueryMessageCountStatus.Success, responseDto.Status);
+            Assert.AreEqual(QuerySubjectStatus.Success, responseDto.Status);
             Assert.AreEqual(1, responseDto.Subject.Id); // 驗證是否拿到 Mock 給的 Id
             Assert.AreEqual(0, responseDto.Subject.MessageCount);
         }

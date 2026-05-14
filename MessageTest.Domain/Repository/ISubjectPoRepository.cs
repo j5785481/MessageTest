@@ -29,7 +29,7 @@ namespace MessageTest.Domain.Repository
         /// </summary>
         /// <param name="req">查詢主題留言數Request</param>
         /// <returns>主題所有資訊</returns>
-        (Exception exception, Subject subject) Query(QueryMessageCountRequestDto req);
+        (Exception exception, Subject subject) Query(QuerySubjectRequestDto req);
 
         (Exception exception, Subject subject) GetById(int subjectId);
     }

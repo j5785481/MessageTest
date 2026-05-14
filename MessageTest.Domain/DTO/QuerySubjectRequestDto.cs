@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MessageTest.Domain.DTO
 {
-    public class QueryMessageCountRequestDto
+    public class QuerySubjectRequestDto
     {
         public int SubjectId { get; set; }
     }

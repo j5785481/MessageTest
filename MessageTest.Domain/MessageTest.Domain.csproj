@@ -48,9 +48,9 @@
     <Compile Include="DTO\DeleteSubjectRequestDto.cs" />
     <Compile Include="DTO\DeleteSubjectResponseDto.cs" />
     <Compile Include="DTO\DeleteSubjectStatus.cs" />
-    <Compile Include="DTO\QueryMessageCountRequestDto.cs" />
-    <Compile Include="DTO\QueryMessageCountResponseDto.cs" />
-    <Compile Include="DTO\QueryMessageCountStatus.cs" />
+    <Compile Include="DTO\QuerySubjectRequestDto.cs" />
+    <Compile Include="DTO\QuerySubjectResponseDto.cs" />
+    <Compile Include="DTO\QuerySubjectStatus.cs" />
     <Compile Include="Model\Message.cs" />
     <Compile Include="Model\MessagePo.cs" />
     <Compile Include="Model\Subject.cs" />

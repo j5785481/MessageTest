@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MessageTest.Domain.DTO
 {
-    public enum QueryMessageCountStatus
+    public enum QuerySubjectStatus
     {
         /// <summary>
         ///     未知錯誤

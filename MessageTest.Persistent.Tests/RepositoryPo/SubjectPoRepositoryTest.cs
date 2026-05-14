@@ -111,7 +111,7 @@ namespace MessageTest.Persistent.Tests.RepositoryPo
             Assert.AreEqual(addResult.subject.Title, "Test");
 
             int subjectId = 1;
-            var queryRequestDto = new QueryMessageCountRequestDto
+            var queryRequestDto = new QuerySubjectRequestDto
             {
                 SubjectId = 1
             };

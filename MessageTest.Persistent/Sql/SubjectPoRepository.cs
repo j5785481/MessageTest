@@ -128,7 +128,7 @@ namespace MessageTest.Persistent.Sql
             }
         }
 
-        public (Exception exception, Subject subject) Query(QueryMessageCountRequestDto req)
+        public (Exception exception, Subject subject) Query(QuerySubjectRequestDto req)
         {
             try
             {
