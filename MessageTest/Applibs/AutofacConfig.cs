@@ -2,6 +2,7 @@
 using System.Reflection;
 using Autofac;
 using Autofac.Integration.WebApi;
+using ForumMessageSystem.Persistent.Core;
 using MessageTest.Domain.Repository;
 
 namespace MessageTest.Applibs
@@ -32,6 +33,15 @@ namespace MessageTest.Applibs
                 .Where(t => t.Namespace == "MessageTest.Persistent.Sql" || t.Namespace == "MessageTest.Domain.Repository")
                 .AsImplementedInterfaces()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies)
+                .SingleInstance();
+
+            // mongo ioc
+            builder.RegisterAssemblyTypes(Assembly.Load("MessageTest.Domain"),
+                    Assembly.Load("MessageTest.Persistent"))
+                .Where(t => t.IsAssignableTo<IRepository>() && t.IsAssignableTo<BaseMongoRepository>())
+                .WithParameter("mongoClient", NoSqlService.MongoConnetion)
+                .WithParameter("dataBaseName", "MessageTest")
+                .As(t => t.GetInterfaces().FirstOrDefault(i => i.Name == $"I{t.Name}"))
                 .SingleInstance();
 
             container = builder.Build();

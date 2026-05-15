@@ -57,7 +57,7 @@ namespace MessageTest.Controller
             }
         }
         [HttpDelete]
-        public HttpResponseMessage DeleteSubject([FromBody] DeleteSubjectRequestDto input)
+        public HttpResponseMessage DeleteSubject([FromUri] DeleteSubjectRequestDto input)
         {
             try
             {
