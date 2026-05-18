@@ -9,7 +9,8 @@ namespace MessageTest.Applibs
 
     internal static class MessageTestProcess
     {
-        private static ILogger logger = LogManager.GetLogger("MessageTest.Server");
+        private readonly ILogger logger = LogManager.GetLogger("MessageTest")
+            .WithProperty("Type", nameof(MessageTestProcess));
 
         public static void ProcessStart()
         {
