@@ -141,7 +141,7 @@ namespace MessageTest.Persistent.Sql
                             f_id = req.SubjectId,
                         },
                         commandType: CommandType.StoredProcedure);
-                    if (result == null) return (new Exception("權限不足或主題不存在"), null);
+                    if (result == null) return (null, null);
 
                     // 轉換 Po -> Domain Object
                     var subject = new Subject

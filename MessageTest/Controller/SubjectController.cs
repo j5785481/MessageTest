@@ -158,7 +158,7 @@ namespace MessageTest.Controller
                     {
                         throw setException;
                     }
-                    logger.Trace($"redis add subject {JsonConvert.SerializeObject(findByIdResult.subject)}");
+                    logger.Trace($"redis add subject {JsonConvert.SerializeObject(getByIdResult.subject)}");
                     result.Content = new StringContent(JsonConvert.SerializeObject(new QuerySubjectResponseDto
                     {
                         Status = QuerySubjectStatus.Success,
