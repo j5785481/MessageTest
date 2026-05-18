@@ -44,6 +44,16 @@ namespace MessageTest.Applibs
                 .As(t => t.GetInterfaces().FirstOrDefault(i => i.Name == $"I{t.Name}"))
                 .SingleInstance();
 
+            // redis ioc
+            builder.RegisterAssemblyTypes(Assembly.Load("MessageTest.Domain"),
+                    Assembly.Load("MessageTest.Persistent"))
+                .Where(t => t.IsAssignableTo<IRepository>() && t.IsAssignableTo<IRedisRepository>())
+                .WithProperty("Conn", NoSqlService.RedisConnections)
+                .WithProperty("AffixKey", NoSqlService.RedisAffixKey)
+                .WithProperty("DataBase", NoSqlService.RedisDataBase)
+                .As(t => t.GetInterfaces().FirstOrDefault(i => i.Name == $"I{t.Name}"))
+                .SingleInstance();
+
             container = builder.Build();
 
             using (var scope = container.BeginLifetimeScope())

@@ -12,6 +12,7 @@ using MessageTest.Controller;
 using MessageTest.Domain.DTO;
 using MessageTest.Domain.Model;
 using MessageTest.Domain.Repository;
+using MessageTest.Persistent.Redis;
 using Moq;
 using Newtonsoft.Json;
 
@@ -22,11 +23,15 @@ namespace MessageTest.Tests.Controller
     {
         private Mock<ISubjectPoRepository> subjectPoRepository = new Mock<ISubjectPoRepository>();
         private Mock<ISubjectRepository> subjectRepository = new Mock<ISubjectRepository>();
+        private Mock<ISubjectCacheRepository> subjectCacheRepository = new Mock<ISubjectCacheRepository>();
+        private Mock<ISubjectColdDownRepository> subjectColdDownRepository = new Mock<ISubjectColdDownRepository>();
         private Mock<ILifetimeScope> lifetimeScope = new Mock<ILifetimeScope>();
 
         [TestMethod]
         public void PostTest()
-        {
+        {   
+            subjectColdDownRepository.Setup(p => p.TryLock(It.IsAny<string>()))
+                .Returns((null, true));
             var addSubjectReqDto = new AddSubjectRequestDto
             {
                 UserId = "115051201",
@@ -49,7 +54,7 @@ namespace MessageTest.Tests.Controller
             subjectRepository.Setup(p => p.Save(It.IsAny<Subject>()))
                 .Returns((Exception)null);
 
-            var controller = new SubjectController(subjectPoRepository.Object, subjectRepository.Object, lifetimeScope.Object);
+            var controller = new SubjectController(subjectPoRepository.Object, subjectRepository.Object, subjectCacheRepository.Object, subjectColdDownRepository.Object, lifetimeScope.Object);
             controller.Request = new HttpRequestMessage();
             controller.Configuration = new HttpConfiguration();
             var postResult = controller.PostSubject(addSubjectReqDto);
@@ -88,15 +93,17 @@ namespace MessageTest.Tests.Controller
                 }));
             subjectRepository.Setup(p => p.Delete(It.IsAny<int>()))
                 .Returns((Exception)null);
-            var controller = new SubjectController(subjectPoRepository.Object, subjectRepository.Object, lifetimeScope.Object);
+            subjectCacheRepository.Setup(p => p.Remove(It.IsAny<int>()))
+                .Returns((null, true));
+            var controller = new SubjectController(subjectPoRepository.Object, subjectRepository.Object, subjectCacheRepository.Object, subjectColdDownRepository.Object, lifetimeScope.Object);
             controller.Request = new HttpRequestMessage();
             controller.Configuration = new HttpConfiguration();
             var postResult = controller.DeleteSubject(deleteSubjectReqDto);
 
             Assert.AreEqual(HttpStatusCode.OK, postResult.StatusCode);
 
-            subjectRepository.Verify(p => p.Delete(It.Is<int>(s => s == 1)), Times.Once, "Mongo Save 應該要被呼叫一次且 Id 要對應");
-
+            subjectRepository.Verify(p => p.Delete(It.Is<int>(s => s == 1)), Times.Once, "Mongo Delete 應該要被呼叫一次且 Id 要對應");
+            subjectCacheRepository.Verify(p => p.Remove(It.Is<int>(s => s == 1)), Times.Once, "Redise Delete 應該要被呼叫一次且 Id 要對應");
             var responseString = postResult.Content.ReadAsStringAsync().Result;
             var responseDto = JsonConvert.DeserializeObject<DeleteSubjectResponseDto>(responseString);
 
@@ -114,6 +121,18 @@ namespace MessageTest.Tests.Controller
             };
             var clientTimeStamp = 1778549400;
             var timeStampTime = TimeStampHelper.ToLocalDateTime(clientTimeStamp);
+            //subjectCacheRepository.Setup(p => p.FindInSubjectId(It.IsAny<int>()))
+            //    .Returns((null, new Subject()
+            //    {
+            //        Id = 1,
+            //        Title = "Test",
+            //        Content = "Test",
+            //        CreatorId = "115051201",
+            //        CreatedAt = timeStampTime,
+            //        MessageCount = 0
+            //    }));
+            subjectCacheRepository.Setup(p => p.FindInSubjectId(It.IsAny<int>()))
+                .Returns((null, null));
             subjectRepository.Setup(p => p.GetById(It.IsAny<int>()))
                 .Returns((null, new Subject()
                 {
@@ -124,6 +143,8 @@ namespace MessageTest.Tests.Controller
                     CreatedAt = timeStampTime,
                     MessageCount = 0
                 }));
+            subjectCacheRepository.Setup(p => p.Set(It.IsAny<Subject>()))
+                .Returns((Exception)null);
             subjectPoRepository.Setup(p => p.Query(It.IsAny<QuerySubjectRequestDto>()))
                 .Returns((null, new Subject()
                 {
@@ -134,14 +155,16 @@ namespace MessageTest.Tests.Controller
                     CreatedAt = timeStampTime,
                     MessageCount = 0
                 }));
-            var controller = new SubjectController(subjectPoRepository.Object, subjectRepository.Object, lifetimeScope.Object);
+            var controller = new SubjectController(subjectPoRepository.Object, subjectRepository.Object, subjectCacheRepository.Object, subjectColdDownRepository.Object, lifetimeScope.Object);
             controller.Request = new HttpRequestMessage();
             controller.Configuration = new HttpConfiguration();
-            var postResult = controller.QueryMessageCount(queryMessageCountReqDto);
+            var postResult = controller.QuerySubject(queryMessageCountReqDto);
 
             Assert.AreEqual(HttpStatusCode.OK, postResult.StatusCode);
 
-            subjectRepository.Verify(p => p.GetById(It.Is<int>(s => s == 1)), Times.Once, "Mongo Save 應該要被呼叫一次且 Id 要對應");
+            subjectCacheRepository.Verify(p => p.FindInSubjectId(It.Is<int>(s => s == 1)), Times.Once, "Redis Query 應該要被呼叫一次且 Id 要對應");
+            subjectRepository.Verify(p => p.GetById(It.Is<int>(s => s == 1)), Times.Once, "Mongo Query 應該要被呼叫一次且 Id 要對應");
+            subjectCacheRepository.Verify(p => p.Set(It.Is<Subject>(s => s.Id == 1)), Times.Once, "Redis Set 應該要被呼叫一次且 Id 要對應");
             subjectPoRepository.Verify(p => p.GetById(It.Is<int>(s => s == 1)), Times.Never, "MMSQL不應該被call");
 
             var responseString = postResult.Content.ReadAsStringAsync().Result;

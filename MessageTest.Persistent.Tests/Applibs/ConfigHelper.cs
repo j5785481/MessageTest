@@ -12,7 +12,7 @@ namespace MessageTest.Persistent.Tests.Applibs
 
         public static string AffixKey = "MessageTest";
         public static string MongoDataBaseName = "MessageTest";
-        public static string RedisConn { get; set; } = @"localhost:6379";
+        public static string RedisConn { get; set; } = @"localhost:16379";
 
         public static int DataBase { get; set; } = 0;
     }

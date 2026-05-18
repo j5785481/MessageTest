@@ -22,5 +22,10 @@ namespace MessageTest.Domain.DTO
         /// 新增留言已被處理
         /// </summary>
         AddSujectAlreadyExist = 2,
+
+        /// <summary>
+        /// 新增留言冷卻中
+        /// </summary>
+        AddSujectColdDown = 3,
     }
 }

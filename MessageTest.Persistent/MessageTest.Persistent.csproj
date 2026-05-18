@@ -52,6 +52,9 @@
     <Reference Include="MongoDB.Driver, Version=3.8.0.0, Culture=neutral, PublicKeyToken=94992a530f44e321, processorArchitecture=MSIL">
       <HintPath>..\packages\MongoDB.Driver.3.8.0\lib\net472\MongoDB.Driver.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="Pipelines.Sockets.Unofficial, Version=1.0.0.0, Culture=neutral, PublicKeyToken=42ea0a778e13fbe2, processorArchitecture=MSIL">
       <HintPath>..\packages\Pipelines.Sockets.Unofficial.1.0.7\lib\net472\Pipelines.Sockets.Unofficial.dll</HintPath>
     </Reference>
@@ -164,6 +167,8 @@
     <Compile Include="Core\IRedisRepository.cs" />
     <Compile Include="Mongo\SubjectRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Redis\SubjectCacheRepository.cs" />
+    <Compile Include="Redis\SubjectColdDownRepository.cs" />
     <Compile Include="Sql\SubjectPoRepository.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -176,5 +181,6 @@
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
