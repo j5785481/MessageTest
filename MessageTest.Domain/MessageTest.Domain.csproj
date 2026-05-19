@@ -41,13 +41,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
+    <Compile Include="DTO\AddMessageRequestDto.cs" />
+    <Compile Include="DTO\AddMessageResponseDto.cs" />
+    <Compile Include="DTO\AddMessageStatus.cs" />
     <Compile Include="DTO\AddSubjectResponseDto.cs" />
     <Compile Include="DTO\AddSubjectStatus.cs" />
     <Compile Include="DTO\AddSubjectRequestDto.cs" />
+    <Compile Include="DTO\DeleteMessageRequestDto.cs" />
+    <Compile Include="DTO\DeleteMessageResponseDto.cs" />
+    <Compile Include="DTO\DeleteMessageStatus.cs" />
     <Compile Include="DTO\DeleteSubjectRequestDto.cs" />
     <Compile Include="DTO\DeleteSubjectResponseDto.cs" />
     <Compile Include="DTO\DeleteSubjectStatus.cs" />
+    <Compile Include="DTO\QueryMessageRequestDto.cs" />
+    <Compile Include="DTO\QueryMessageResponseDto.cs" />
     <Compile Include="DTO\QuerySubjectRequestDto.cs" />
     <Compile Include="DTO\QuerySubjectResponseDto.cs" />
     <Compile Include="DTO\QuerySubjectStatus.cs" />
@@ -56,7 +63,7 @@
     <Compile Include="Model\Subject.cs" />
     <Compile Include="Model\SubjectPo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Repository\IMessageRepository.cs" />
+    <Compile Include="Repository\IMessagePoRepository.cs" />
     <Compile Include="Repository\IRepository.cs" />
     <Compile Include="Repository\ISubjectCacheRepository.cs" />
     <Compile Include="Repository\ISubjectColdDownRepository.cs" />

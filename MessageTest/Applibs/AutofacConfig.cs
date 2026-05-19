@@ -59,7 +59,8 @@ namespace MessageTest.Applibs
             using (var scope = container.BeginLifetimeScope())
             {
                 // 如果這行噴錯，就代表 ISubjectPoRepository 沒註冊成功
-                var test = scope.Resolve<ISubjectPoRepository>();
+                var subjectTest = scope.Resolve<ISubjectPoRepository>();
+                var messageTest = scope.Resolve<IMessagePoRepository>();
             }
         }
     }

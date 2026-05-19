@@ -252,6 +252,7 @@
     <Compile Include="Applibs\ConfigHelper.cs" />
     <Compile Include="Applibs\NoSqlService.cs" />
     <Compile Include="Applibs\MessageTestProcess.cs" />
+    <Compile Include="Controller\MessageController.cs" />
     <Compile Include="Controller\SubjectController.cs" />
     <Compile Include="DistributedLock\IDistributedLock.cs" />
     <Compile Include="DistributedLock\MessageLocker.cs" />
