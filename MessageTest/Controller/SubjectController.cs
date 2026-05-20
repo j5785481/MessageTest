@@ -83,11 +83,11 @@ namespace MessageTest.Controller
             }
         }
         [HttpDelete]
-        public HttpResponseMessage DeleteSubject([FromUri] DeleteSubjectRequestDto input)
+        public HttpResponseMessage DeleteSubject([FromUri] int subjectId)
         {
             try
             {
-                var deleteResult = this.subjectPoRepository.Delete(input);
+                var deleteResult = this.subjectPoRepository.Delete(subjectId);
 
                 if (deleteResult.exception != null)
                 {

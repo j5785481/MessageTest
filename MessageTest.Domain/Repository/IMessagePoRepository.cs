@@ -25,6 +25,13 @@ namespace MessageTest.Domain.Repository
         (Exception exception, Message message) Delete(DeleteMessageRequestDto req);
 
         /// <summary>
+        /// 批次刪除留言
+        /// </summary>
+        /// <param name="reqs">刪除留言Request</param>
+        /// <returns>刪除留言結果</returns>
+        (Exception exception, List<Message> messages) BatchDelete(List<DeleteMessageRequestDto> reqs);
+
+        /// <summary>
         /// 查詢主題留言
         /// </summary>
         /// <param name="req">查詢主題留言Request</param>

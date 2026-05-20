@@ -74,14 +74,9 @@ namespace MessageTest.Tests.Controller
         [TestMethod]
         public void DeleteTest()
         {
-            var deleteSubjectReqDto = new DeleteSubjectRequestDto
-            {
-                UserId = "115051201",
-                Id = 1
-            };
             var clientTimeStamp = 1778549400;
             var timeStampTime = TimeStampHelper.ToLocalDateTime(clientTimeStamp);
-            subjectPoRepository.Setup(p => p.Delete(It.IsAny<DeleteSubjectRequestDto>()))
+            subjectPoRepository.Setup(p => p.Delete(It.IsAny<int>()))
                 .Returns((null, new Subject()
                 {
                     Id = 1,
@@ -98,7 +93,7 @@ namespace MessageTest.Tests.Controller
             var controller = new SubjectController(subjectPoRepository.Object, subjectRepository.Object, subjectCacheRepository.Object, subjectColdDownRepository.Object, lifetimeScope.Object);
             controller.Request = new HttpRequestMessage();
             controller.Configuration = new HttpConfiguration();
-            var postResult = controller.DeleteSubject(deleteSubjectReqDto);
+            var postResult = controller.DeleteSubject(1);
 
             Assert.AreEqual(HttpStatusCode.OK, postResult.StatusCode);
 

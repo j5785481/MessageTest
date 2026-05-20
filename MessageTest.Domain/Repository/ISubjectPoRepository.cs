@@ -20,9 +20,9 @@ namespace MessageTest.Domain.Repository
         /// <summary>
         /// 刪除主題
         /// </summary>
-        /// <param name="req">刪除主題Request</param>
+        /// <param name="subjectId">刪除主題Id</param>
         /// <returns>刪除主題結果</returns>
-        (Exception exception, Subject subject) Delete(DeleteSubjectRequestDto req);
+        (Exception exception, Subject subject) Delete(int subjectId);
 
         /// <summary>
         /// 查詢留言數

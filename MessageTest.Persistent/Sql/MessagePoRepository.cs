@@ -60,6 +60,59 @@ namespace MessageTest.Persistent.Sql
             }
         }
 
+        public (Exception exception, List<Message> messages) BatchDelete(List<DeleteMessageRequestDto> reqs)
+        {
+            try
+            {
+                using (var cn = new SqlConnection(this.connectionString))
+                {
+                    if (reqs == null || !reqs.Any())
+                        return (null, null);
+
+                    // 1. 準備 TVP 資料：型態指定為 string
+                    var udt = new DataTable();
+                    udt.Columns.Add("Id", typeof(string));
+
+                    foreach (var req in reqs)
+                    {
+                        // 💡 關鍵：轉成字串存入 DataTable
+                        // 如果你當初存進資料庫是帶有連字號且小寫的格式，可以用 ToString().ToLower() 確保一致
+                        string idString = req.MessageId.ToString().ToLower();
+                        udt.Rows.Add(idString);
+                    }
+
+                    // 2. 呼叫 SP，並對應到剛剛建立的 dbo.StringListType
+                    var deleteResults = cn.Query<MessagePo>(
+                        "pro_messageBatchDelete",
+                        new
+                        {
+                            MessageIds = udt.AsTableValuedParameter("dbo.type_message")
+                        },
+                        commandType: CommandType.StoredProcedure
+                    ).ToList();
+
+                    if (deleteResults == null || !deleteResults.Any())
+                        return (null, null);
+
+                    // 3. 將 Po 轉成 Domain Object List
+                    var messages = deleteResults.Select(po => new Message
+                    {
+                        SubjectId = po.f_subjectId,
+                        Id = po.f_id, // 此時 po.f_id 已經是 string 欄位了
+                        Content = po.f_content,
+                        UserId = po.f_userId,
+                        CreatedAt = po.f_createdAt,
+                    }).ToList();
+
+                    return (null, messages);
+                }
+            }
+            catch (Exception ex)
+            {
+                return (ex, null);
+            }
+        }
+
         public (Exception exception, Message message) Delete(DeleteMessageRequestDto req)
         {
             try

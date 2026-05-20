@@ -74,13 +74,7 @@ namespace MessageTest.Persistent.Tests.RepositoryPo
             string userId = "115051302";
             if (getByIdResult.subject.CreatorId.Equals(userId))
             {
-                var deleteSubjectReqDto = new DeleteSubjectRequestDto
-                {
-                    UserId = userId,
-                    Id = 1
-                };
-
-                var deleteResult = this.repo.Delete(deleteSubjectReqDto);
+                var deleteResult = this.repo.Delete(1);
 
                 Assert.IsNull(deleteResult.exception);
                 Assert.IsNotNull(deleteResult.subject);

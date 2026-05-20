@@ -57,7 +57,7 @@ namespace MessageTest.Persistent.Sql
             }
         }
 
-        public (Exception exception, Subject subject) Delete(DeleteSubjectRequestDto req)
+        public (Exception exception, Subject subject) Delete(int subjectId)
         {
             try
             {
@@ -67,8 +67,7 @@ namespace MessageTest.Persistent.Sql
                         "pro_subjectDelete",
                         new
                         {
-                            f_id = req.Id,
-                            f_creatorId = req.UserId,
+                            f_id = subjectId,
                         },
                         commandType: CommandType.StoredProcedure);
                     if (result == null) return (new Exception("刪除失敗"), null);
