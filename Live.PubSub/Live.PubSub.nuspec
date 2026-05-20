@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Live.PubSub</id>
+<version>1.0.27</version>
+    <title>Live.PubSub</title>
+    <authors>Carter</authors>
+    <owners>Carter</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Pubsub</description>
+    <copyright>Copyright 2020</copyright>
+    <dependencies>
+      <dependency id="Autofac" version="5.1.2" />
+      <dependency id="Live.Libs" version="2.0.81" />
+      <dependency id="RabbitMQ.Client" version="5.1.2" />
+	  <dependency id="StackExchange.Redis" version="2.0.601" />
+    </dependencies>
+  </metadata>
+</package>
