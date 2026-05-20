@@ -32,5 +32,7 @@ namespace MessageTest.Domain.Repository
         (Exception exception, Subject subject) Query(QuerySubjectRequestDto req);
 
         (Exception exception, Subject subject) GetById(int subjectId);
+
+        (Exception exception, Subject subject) Upsert(Subject input);
     }
 }

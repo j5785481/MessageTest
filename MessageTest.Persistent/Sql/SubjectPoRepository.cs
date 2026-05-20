@@ -106,7 +106,7 @@ namespace MessageTest.Persistent.Sql
                             f_id = subjectId
                         },
                         commandType: CommandType.StoredProcedure);
-                    if (result == null) return (new Exception("查詢資料失敗"), null);
+                    if (result == null) return (null, null);
 
                     // 轉換 Po -> Domain Object
                     var subject = new Subject
@@ -158,6 +158,45 @@ namespace MessageTest.Persistent.Sql
                 }
             }
             catch (Exception ex)
+            {
+                return (ex, null);
+            }
+        }
+
+        public (Exception exception, Subject subject) Upsert(Subject input)
+        {
+            try
+            {
+                using (var cn = new SqlConnection(this.connectionString))
+                {
+                    var result = cn.QueryFirstOrDefault<SubjectPo>(
+                        "pro_subjectUpsert",
+                        new
+                        {
+                            f_id = input.Id,
+                            f_title = input.Title,
+                            f_content = input.Content,
+                            f_creatorId = input.CreatorId,
+                            f_messageCount = input.MessageCount
+                        },
+                        commandType: CommandType.StoredProcedure);
+                    if (result == null) return (null, null);
+
+                    // 轉換 Po -> Domain Object
+                    var subject = new Subject
+                    {
+                        Id = result.f_id,
+                        Title = result.f_title,
+                        Content = result.f_content,
+                        CreatorId = result.f_creatorId,
+                        CreatedAt = result.f_createdAt,
+                        MessageCount = result.f_messageCount,
+                    };
+
+                    return (null, subject);
+                }
+            }
+            catch (Exception ex) 
             {
                 return (ex, null);
             }

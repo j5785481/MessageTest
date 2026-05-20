@@ -18,17 +18,24 @@ namespace MessageTest.Domain.Repository
         (Exception exception, Message message) Add(AddMessageRequestDto req);
 
         /// <summary>
-        /// 刪除主題
+        /// 刪除留言
         /// </summary>
-        /// <param name="req">刪除主題Request</param>
-        /// <returns>刪除主題結果</returns>
+        /// <param name="req">刪除留言Request</param>
+        /// <returns>刪除留言結果</returns>
         (Exception exception, Message message) Delete(DeleteMessageRequestDto req);
 
         /// <summary>
-        /// 查詢留言數
+        /// 查詢主題留言
         /// </summary>
-        /// <param name="req">查詢主題留言數Request</param>
+        /// <param name="req">查詢主題留言Request</param>
         /// <returns>主題所有資訊</returns>
         (Exception exception, List<Message> messages) Query(QueryMessageRequestDto req);
+
+        /// <summary>
+        /// 查詢會員的留言
+        /// </summary>
+        /// <param name="userId">會員Id</param>
+        /// <returns>會員所有資訊</returns>
+        (Exception exception, List<Message> messages) GetByAccount(string userId);
     }
 }

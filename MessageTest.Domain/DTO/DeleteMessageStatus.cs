@@ -19,8 +19,13 @@ namespace MessageTest.Domain.DTO
         Success = 1,
 
         /// <summary>
-        /// 非原作者或留言不存在
+        ///     失敗
         /// </summary>
-        NotOrginAuthorOrMessageNotExist = 2,
+        Fail = 2,
+
+        /// <summary>
+        /// User沒有留言
+        /// </summary>
+        UserHasNotMessage = 3,
     }
 }

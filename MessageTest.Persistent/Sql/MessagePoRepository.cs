@@ -29,17 +29,8 @@ namespace MessageTest.Persistent.Sql
             {
                 using (var cn = new SqlConnection(this.connectionString))
                 {
-                    var subjectResult = cn.QueryFirstOrDefault<SubjectPo>(
-                        "pro_subjectGetById",
-                        new
-                        {
-                            f_id = req.SubjectId,
-                        },
-                        commandType: CommandType.StoredProcedure);
-                    if (subjectResult == null) return (new Exception("新增失敗無此主題"), null);
-
                     var newId = Guid.NewGuid().ToString();
-                    var addResult = cn.QueryFirstOrDefault<MessagePo>(
+                    var result = cn.QueryFirstOrDefault<MessagePo>(
                         "pro_messageAdd",
                         new
                         {
@@ -49,25 +40,17 @@ namespace MessageTest.Persistent.Sql
                             f_id = newId,
                         },
                         commandType: CommandType.StoredProcedure);
-                    if (addResult == null) return (new Exception("新增失敗"), null);
+                    if (result == null) return (null, null);
 
                     // 轉換 Po -> Domain Object
                     var message = new Message
                     {
                         SubjectId = req.SubjectId,
-                        Id = addResult.f_id,
-                        Content = addResult.f_content,
-                        UserId = addResult.f_userId,
-                        CreatedAt = addResult.f_createdAt,
+                        Id = result.f_id,
+                        Content = result.f_content,
+                        UserId = result.f_userId,
+                        CreatedAt = result.f_createdAt,
                     };
-                    var messageCountUpdateResult = cn.QueryFirstOrDefault<MessagePo>(
-                        "pro_messageCountIncrement",
-                        new
-                        {
-                            f_subjectId = req.SubjectId
-                        },
-                        commandType: CommandType.StoredProcedure);
-                    if (messageCountUpdateResult == null) return (new Exception("主題留言數扣除失敗"), null);
                     return (null, message);
                 }
             }
@@ -83,30 +66,6 @@ namespace MessageTest.Persistent.Sql
             {
                 using (var cn = new SqlConnection(this.connectionString))
                 {
-                    var messageGetByAccountResult = cn.Query<MessagePo>(
-                        "pro_messageGetByAccount",
-                        new
-                        {
-                            f_userId = req.UserId
-                        },
-                        commandType: CommandType.StoredProcedure);
-                    if (messageGetByAccountResult == null || !messageGetByAccountResult.Any() 
-                        || messageGetByAccountResult.Count() == 0)
-                        return (new Exception("該使用者沒有留言"), null);
-
-                    var accountMessagesList = messageGetByAccountResult.Select(po => new Message
-                    {
-                        // 在這裡把 PO 的屬性賦值給 Message
-                        SubjectId = po.f_subjectId,
-                        Id = po.f_id,
-                        Content = po.f_content,
-                        UserId = po.f_userId,
-                        CreatedAt = po.f_createdAt,
-                    }).ToList();
-
-                    bool isExists = accountMessagesList.Any(m => m.Id == req.MessageId);
-                    if (!isExists) return (new Exception("該使用者沒有留言"), null);
-
                     var deleteResult = cn.QueryFirstOrDefault<MessagePo>(
                         "pro_messageDelete",
                         new
@@ -125,16 +84,43 @@ namespace MessageTest.Persistent.Sql
                         UserId = deleteResult.f_userId,
                         CreatedAt = deleteResult.f_createdAt,
                     };
-                    int? messageCountUpdateResult = cn.QueryFirstOrDefault<int?>(
-                        "pro_messageCountReduce",
+                    return (null, message);
+                }
+            }
+            catch (Exception ex)
+            {
+                return (ex, null);
+            }
+        }
+
+        public (Exception exception, List<Message> messages) GetByAccount(string userId)
+        {
+            try
+            {
+                using (var cn = new SqlConnection(this.connectionString))
+                {
+                    var messageGetByAccountResult = cn.Query<MessagePo>(
+                        "pro_messageGetByAccount",
                         new
                         {
-                            f_subjectId = req.SubjectId
+                            f_userId = userId
                         },
                         commandType: CommandType.StoredProcedure);
+                    if (messageGetByAccountResult == null || !messageGetByAccountResult.Any()
+                        || messageGetByAccountResult.Count() == 0)
+                        return (null, null);
 
-                    if (messageCountUpdateResult == null) return (new Exception("主題留言數扣除失敗，可能數量已為 0 或主題不存在"), null);
-                    return (null, message);
+                    var accountMessagesList = messageGetByAccountResult.Select(po => new Message
+                    {
+                        // 在這裡把 PO 的屬性賦值給 Message
+                        SubjectId = po.f_subjectId,
+                        Id = po.f_id,
+                        Content = po.f_content,
+                        UserId = po.f_userId,
+                        CreatedAt = po.f_createdAt,
+                    }).ToList();
+
+                    return (null, accountMessagesList);
                 }
             }
             catch (Exception ex)

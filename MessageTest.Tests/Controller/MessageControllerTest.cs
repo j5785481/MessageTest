@@ -25,6 +25,7 @@ namespace MessageTest.Tests.Controller
     public class MessageControllerTest
     {
         private Mock<IMessagePoRepository> messagePoRepository = new Mock<IMessagePoRepository>();
+        private Mock<ISubjectPoRepository> subjectPoRepository = new Mock<ISubjectPoRepository>();
         private Mock<ILifetimeScope> lifetimeScope = new Mock<ILifetimeScope>();
 
         [TestMethod]
@@ -49,8 +50,18 @@ namespace MessageTest.Tests.Controller
                     UserId = "115051801",
                     CreatedAt = timeStampTime
                 }));
+            subjectPoRepository.Setup(p => p.GetById(It.IsAny<int>()))
+                .Returns((null, new Subject()
+                {
+                    Id = 1,
+                    Title = "Test",
+                    Content = "Test",
+                    CreatorId = "115051201",
+                    CreatedAt = timeStampTime,
+                    MessageCount = 0
+                }));
 
-            var controller = new MessageController(messagePoRepository.Object, lifetimeScope.Object);
+            var controller = new MessageController(messagePoRepository.Object, subjectPoRepository.Object, lifetimeScope.Object);
             controller.Request = new HttpRequestMessage();
             controller.Configuration = new HttpConfiguration();
             var postResult = controller.PostMessage(addMessageReqDto);
@@ -79,6 +90,18 @@ namespace MessageTest.Tests.Controller
             };
             var clientTimeStamp = 1778549400;
             var timeStampTime = TimeStampHelper.ToLocalDateTime(clientTimeStamp);
+            messagePoRepository.Setup(p => p.GetByAccount(It.IsAny<string>()))
+                .Returns((null, new List<Message>
+                {
+                    new Message()
+                    {
+                        SubjectId = 1,
+                        Id = messageId,
+                        Content = "Test",
+                        UserId = "115051801",
+                        CreatedAt = timeStampTime
+                    }
+                }));
             messagePoRepository.Setup(p => p.Delete(It.IsAny<DeleteMessageRequestDto>()))
                 .Returns((null, new Message()
                 {
@@ -88,8 +111,28 @@ namespace MessageTest.Tests.Controller
                     UserId = "115051801",
                     CreatedAt = timeStampTime
                 }));
+            subjectPoRepository.Setup(p => p.Upsert(It.IsAny<Subject>()))
+                .Returns((null, new Subject()
+                {
+                    Id = 1,
+                    Title = "Test",
+                    Content = "Test",
+                    CreatorId = "115051201",
+                    CreatedAt = timeStampTime,
+                    MessageCount = 0
+                }));
+            subjectPoRepository.Setup(p => p.GetById(It.IsAny<int>()))
+                .Returns((null, new Subject()
+                {
+                    Id = 1,
+                    Title = "Test",
+                    Content = "Test",
+                    CreatorId = "115051201",
+                    CreatedAt = timeStampTime,
+                    MessageCount = 0
+                }));
 
-            var controller = new MessageController(messagePoRepository.Object, lifetimeScope.Object);
+            var controller = new MessageController(messagePoRepository.Object, subjectPoRepository.Object, lifetimeScope.Object);
             controller.Request = new HttpRequestMessage();
             controller.Configuration = new HttpConfiguration();
             var postResult = controller.DeleteMessage(deleteMessageReqDto);
@@ -139,7 +182,7 @@ namespace MessageTest.Tests.Controller
                     }
                 }));
 
-            var controller = new MessageController(messagePoRepository.Object, lifetimeScope.Object);
+            var controller = new MessageController(messagePoRepository.Object, subjectPoRepository.Object, lifetimeScope.Object);
             controller.Request = new HttpRequestMessage();
             controller.Configuration = new HttpConfiguration();
             var queryResult = controller.QueryMessage(queryMessageReqDto);

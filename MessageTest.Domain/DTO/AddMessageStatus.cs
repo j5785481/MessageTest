@@ -19,13 +19,24 @@ namespace MessageTest.Domain.DTO
         Success = 1,
 
         /// <summary>
+        ///     失敗
+        /// </summary>
+        Fail = 2,
+
+        /// <summary>
         /// 新增留言已被處理
         /// </summary>
-        AddSujectAlreadyExist = 2,
+        AddSujectAlreadyExist = 3,
 
         /// <summary>
         /// 新增留言冷卻中
         /// </summary>
-        AddMessageColdDown = 3,
+        AddMessageColdDown = 4,
+
+        /// <summary>
+        /// 查詢不到該主題
+        /// </summary>
+        QueryHasNotSubject = 5,
+
     }
 }
