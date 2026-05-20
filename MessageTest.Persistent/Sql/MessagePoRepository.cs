@@ -38,7 +38,7 @@ namespace MessageTest.Persistent.Sql
                         commandType: CommandType.StoredProcedure);
                     if (subjectResult == null) return (new Exception("新增失敗無此主題"), null);
 
-                    var newId = Guid.NewGuid();
+                    var newId = Guid.NewGuid().ToString();
                     var addResult = cn.QueryFirstOrDefault<MessagePo>(
                         "pro_messageAdd",
                         new

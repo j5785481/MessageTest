@@ -10,7 +10,7 @@ namespace MessageTest.Domain.Model
     {
         public int f_subjectId { get; set; }
 
-        public Guid f_id { get; set; }
+        public string f_id { get; set; }
 
         public string f_content { get; set; }
 

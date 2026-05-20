@@ -39,7 +39,7 @@ namespace MessageTest.Tests.Controller
                 CreateTimeStamp = 1778549400
             };
             var timeStampTime = TimeStampHelper.ToLocalDateTime(addMessageReqDto.ClientTimeStamp);
-            var guId = Guid.NewGuid();
+            var guId = Guid.NewGuid().ToString();
             messagePoRepository.Setup(p => p.Add(It.IsAny<AddMessageRequestDto>()))
                 .Returns((null, new Message()
                 {
@@ -70,7 +70,7 @@ namespace MessageTest.Tests.Controller
         [TestMethod]
         public void DeleteTest()
         {
-            var messageId = Guid.NewGuid();
+            var messageId = Guid.NewGuid().ToString();
             var deleteMessageReqDto = new DeleteMessageRequestDto
             {
                 UserId = "115051801",
@@ -109,7 +109,7 @@ namespace MessageTest.Tests.Controller
         [TestMethod]
         public void QueryTest()
         {
-            var messageId = Guid.NewGuid();
+            var messageId = Guid.NewGuid().ToString();
             var queryMessageReqDto = new QueryMessageRequestDto
             {
                 SubjectId = 1,
@@ -124,7 +124,7 @@ namespace MessageTest.Tests.Controller
                     new Message
                     {
                         SubjectId = 1,
-                        Id = new Guid(),
+                        Id = new Guid().ToString(),
                         Content = "第一筆測試訊息",
                         UserId = "115051801",
                         CreatedAt = timeStampTime,
@@ -132,7 +132,7 @@ namespace MessageTest.Tests.Controller
                     new Message
                     {
                         SubjectId = 1,
-                        Id = new Guid(),
+                        Id = new Guid().ToString(),
                         Content = "第二筆測試訊息",
                         UserId = "115051801",
                         CreatedAt = timeStampTime,
