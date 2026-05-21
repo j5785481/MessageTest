@@ -15,7 +15,7 @@ namespace MessageTest.Persistent.Mongo
 {
     public class SubjectRepository : BaseMongoRepository, ISubjectRepository
     {
-        private const string CollectionName = "MessageTest";
+        private const string CollectionName = "MessageTestSubject";
 
         static SubjectRepository()
         {

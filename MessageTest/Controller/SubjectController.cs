@@ -96,7 +96,7 @@ namespace MessageTest.Controller
             try
             {
                 var getByIdResult = this.messageRepository.GetById(subjectId);
-                if(getByIdResult.exception == null)
+                if(getByIdResult.exception != null)
                 {
                     logger.Info($"DeleteSubject messageRepository.GetById expection{JsonConvert.SerializeObject(getByIdResult.exception)}");
                 }

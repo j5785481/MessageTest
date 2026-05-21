@@ -156,7 +156,7 @@ namespace MessageTest.Controller
                     logger.Info($"DeleteMessage subjectPoRepository.GetById fail{JsonConvert.SerializeObject(input)}");
                 }
                 queryById.subject.MessageCount = queryById.subject.MessageCount - 1;
-                if (queryById.subject.MessageCount > 0) queryById.subject.MessageCount = 0;
+                if (queryById.subject.MessageCount < 0) queryById.subject.MessageCount = 0;
                 var upsertSubject = this.subjectPoRepository.Upsert(queryById.subject);
                 if (upsertSubject.exception != null)
                 {

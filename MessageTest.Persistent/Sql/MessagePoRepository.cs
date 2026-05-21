@@ -71,7 +71,7 @@ namespace MessageTest.Persistent.Sql
 
                     // 1. 準備 TVP 資料：型態指定為 string
                     var udt = new DataTable();
-                    udt.Columns.Add("Id", typeof(string));
+                    udt.Columns.Add("f_messageId", typeof(string));
 
                     foreach (var req in reqs)
                     {
