@@ -125,5 +125,15 @@
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MessageTest.Domain\MessageTest.Domain.csproj">
+      <Project>{5EFEA6BB-FC7D-4033-BD48-421277E107FD}</Project>
+      <Name>MessageTest.Domain</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MessageTest.Lib\MessageTest.Lib.csproj">
+      <Project>{8b5df0ef-d6f2-43ea-8522-cbe335c5dfd4}</Project>
+      <Name>MessageTest.Lib</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

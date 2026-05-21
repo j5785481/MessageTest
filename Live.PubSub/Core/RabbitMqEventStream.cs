@@ -1,5 +1,4 @@
-﻿using Live.Libs;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System.Collections.Generic;
 
 namespace Live.PubSub.Core
@@ -20,8 +19,8 @@ namespace Live.PubSub.Core
         /// <param name="records"></param>
         public RabbitMqEventStream(string type, string data, long utcTimeStamp, string key = null, string eventName = null, IList<object> records = null)
         {
-            Type = key != null ? StorageEventHelper.FromEventName(eventName) : type;
-            Data = key != null ? JsonConvert.SerializeObject(new { Key = key, Records = records }) : data;
+            Type = type;
+            Data = data;
             UtcTimeStamp = utcTimeStamp;
         }
     }
