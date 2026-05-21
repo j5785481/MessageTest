@@ -12,7 +12,9 @@ using MessageTest.Controller;
 using MessageTest.Domain.DTO;
 using MessageTest.Domain.Model;
 using MessageTest.Domain.Repository;
+using MessageTest.Persistent.Mongo;
 using MessageTest.Persistent.Redis;
+using MessageTest.Persistent.Sql;
 using Moq;
 using Newtonsoft.Json;
 
@@ -25,6 +27,8 @@ namespace MessageTest.Tests.Controller
         private Mock<ISubjectRepository> subjectRepository = new Mock<ISubjectRepository>();
         private Mock<ISubjectCacheRepository> subjectCacheRepository = new Mock<ISubjectCacheRepository>();
         private Mock<ISubjectColdDownRepository> subjectColdDownRepository = new Mock<ISubjectColdDownRepository>();
+        private Mock<IMessagePoRepository> messagePoRepository = new Mock<IMessagePoRepository>();
+        private Mock<IMessageRepository> messageRepository = new Mock<IMessageRepository>();
         private Mock<ILifetimeScope> lifetimeScope = new Mock<ILifetimeScope>();
 
         [TestMethod]
@@ -54,7 +58,7 @@ namespace MessageTest.Tests.Controller
             subjectRepository.Setup(p => p.Save(It.IsAny<Subject>()))
                 .Returns((Exception)null);
 
-            var controller = new SubjectController(subjectPoRepository.Object, subjectRepository.Object, subjectCacheRepository.Object, subjectColdDownRepository.Object, lifetimeScope.Object);
+            var controller = new SubjectController(subjectPoRepository.Object, subjectRepository.Object, subjectCacheRepository.Object, subjectColdDownRepository.Object, messagePoRepository.Object, messageRepository.Object, lifetimeScope.Object);
             controller.Request = new HttpRequestMessage();
             controller.Configuration = new HttpConfiguration();
             var postResult = controller.PostSubject(addSubjectReqDto);
@@ -76,6 +80,50 @@ namespace MessageTest.Tests.Controller
         {
             var clientTimeStamp = 1778549400;
             var timeStampTime = TimeStampHelper.ToLocalDateTime(clientTimeStamp);
+            var id1 = new Guid().ToString();
+            var id2 = new Guid().ToString();
+            messageRepository.Setup(p => p.GetById(It.IsAny<int>()))
+                .Returns((null, new List<Message>()
+                {
+                    new Message
+                    {
+                        SubjectId = 1,
+                        Id = id1,
+                        Content = "第一筆測試訊息",
+                        UserId = "115051801",
+                        CreatedAt = timeStampTime,
+                    },
+                    new Message
+                    {
+                        SubjectId = 1,
+                        Id = id2,
+                        Content = "第二筆測試訊息",
+                        UserId = "115051801",
+                        CreatedAt = timeStampTime,
+                    },
+                }));
+            messagePoRepository.Setup(p => p.BatchDelete(It.IsAny<List<DeleteMessageRequestDto>>()))
+                .Returns((null, new List<Message>()
+                {
+                    new Message
+                    {
+                        SubjectId = 1,
+                        Id = id1,
+                        Content = "第一筆測試訊息",
+                        UserId = "115051801",
+                        CreatedAt = timeStampTime,
+                    },
+                    new Message
+                    {
+                        SubjectId = 1,
+                        Id = id2,
+                        Content = "第二筆測試訊息",
+                        UserId = "115051801",
+                        CreatedAt = timeStampTime,
+                    },
+                }));
+            messageRepository.Setup(p => p.BatchDelete(It.IsAny<List<string>>()))
+                .Returns((Exception)null);
             subjectPoRepository.Setup(p => p.Delete(It.IsAny<int>()))
                 .Returns((null, new Subject()
                 {
@@ -90,13 +138,16 @@ namespace MessageTest.Tests.Controller
                 .Returns((Exception)null);
             subjectCacheRepository.Setup(p => p.Remove(It.IsAny<int>()))
                 .Returns((null, true));
-            var controller = new SubjectController(subjectPoRepository.Object, subjectRepository.Object, subjectCacheRepository.Object, subjectColdDownRepository.Object, lifetimeScope.Object);
+            var controller = new SubjectController(subjectPoRepository.Object, subjectRepository.Object, subjectCacheRepository.Object, subjectColdDownRepository.Object, messagePoRepository.Object, messageRepository.Object, lifetimeScope.Object);
             controller.Request = new HttpRequestMessage();
             controller.Configuration = new HttpConfiguration();
             var postResult = controller.DeleteSubject(1);
 
             Assert.AreEqual(HttpStatusCode.OK, postResult.StatusCode);
 
+            messageRepository.Verify(p => p.GetById(It.Is<int>(s => s == 1)), Times.Once, "messageRepository GetById 應該要被呼叫一次且 Id 要對應");
+            messagePoRepository.Verify(p => p.BatchDelete(It.Is<List<DeleteMessageRequestDto>>(s => s.Count == 2)), Times.Once, "messagePoRepository BatchDelete 應該要被呼叫一次且筆數要對應");
+            messageRepository.Verify(p => p.BatchDelete(It.Is<List<string>>(s => s[0] == id1)), Times.Once, "messageRepository BatchDelete 應該要被呼叫一次且第一筆資料要是砍messageId = id1");
             subjectRepository.Verify(p => p.Delete(It.Is<int>(s => s == 1)), Times.Once, "Mongo Delete 應該要被呼叫一次且 Id 要對應");
             subjectCacheRepository.Verify(p => p.Remove(It.Is<int>(s => s == 1)), Times.Once, "Redise Delete 應該要被呼叫一次且 Id 要對應");
             var responseString = postResult.Content.ReadAsStringAsync().Result;
@@ -150,7 +201,7 @@ namespace MessageTest.Tests.Controller
                     CreatedAt = timeStampTime,
                     MessageCount = 0
                 }));
-            var controller = new SubjectController(subjectPoRepository.Object, subjectRepository.Object, subjectCacheRepository.Object, subjectColdDownRepository.Object, lifetimeScope.Object);
+            var controller = new SubjectController(subjectPoRepository.Object, subjectRepository.Object, subjectCacheRepository.Object, subjectColdDownRepository.Object, messagePoRepository.Object, messageRepository.Object, lifetimeScope.Object);
             controller.Request = new HttpRequestMessage();
             controller.Configuration = new HttpConfiguration();
             var postResult = controller.QuerySubject(queryMessageCountReqDto);

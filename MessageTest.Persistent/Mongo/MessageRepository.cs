@@ -56,6 +56,19 @@ namespace MessageTest.Persistent.Mongo
             }
         }
 
+        public Exception BatchDelete(List<string> messageIds)
+        {
+            try
+            {
+                collection.DeleteMany(Builders<Message>.Filter.In(p => p.Id, messageIds));
+                return null;
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+        }
+
         public (Exception exception, List<Message> messages) GetById(int subjectId)
         {
             try

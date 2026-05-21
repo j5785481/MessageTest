@@ -18,14 +18,19 @@ namespace MessageTest.Controller
     {
         private readonly IMessagePoRepository messagePoRepository;
         private readonly ISubjectPoRepository subjectPoRepository;
+        private readonly IMessageRepository messageRepository;
+        private readonly ISubjectRepository subjectRepository;
         private readonly ILifetimeScope lifetimeScope;
         private readonly ILogger logger = LogManager.GetLogger("MessageTest")
             .WithProperty("Type", nameof(MessageController));
 
-        public MessageController(IMessagePoRepository messagePoRepository, ISubjectPoRepository subjectPoRepository, ILifetimeScope lifetimeScope)
+        public MessageController(IMessagePoRepository messagePoRepository, ISubjectPoRepository subjectPoRepository
+            , IMessageRepository messageRepository, ISubjectRepository subjectRepository, ILifetimeScope lifetimeScope)
         {
             this.messagePoRepository = messagePoRepository;
             this.subjectPoRepository = subjectPoRepository;
+            this.messageRepository = messageRepository;
+            this.subjectRepository = subjectRepository;
             this.lifetimeScope = lifetimeScope;
         }
 
@@ -63,6 +68,11 @@ namespace MessageTest.Controller
                         Message = null
                     }));
                 }
+                var messageSaveException = this.messageRepository.Save(addMessage.message);
+                if (messageSaveException != null)
+                {
+                    logger.Info($"PostMessage messageRepository.Save expcetion{JsonConvert.SerializeObject(messageSaveException)}");
+                }
                 querySubject.subject.MessageCount = querySubject.subject.MessageCount + 1;
                 var upsertSubject = this.subjectPoRepository.Upsert(querySubject.subject);
                 if (upsertSubject.exception != null) 
@@ -72,6 +82,11 @@ namespace MessageTest.Controller
                 if(upsertSubject.subject == null)
                 {
                     logger.Info($"PostMessage subjectPoRepository.Upsert failed{JsonConvert.SerializeObject(input)}");
+                }
+                var subjectSaveException = this.subjectRepository.Save(upsertSubject.subject);
+                if (subjectSaveException != null)
+                {
+                    logger.Info($"PostMessage subjectRepository.Save expcetion{JsonConvert.SerializeObject(subjectSaveException)}");
                 }
                 result.Content = new StringContent(JsonConvert.SerializeObject(new AddMessageResponseDto
                 {
@@ -126,6 +141,11 @@ namespace MessageTest.Controller
                         Message = null
                     }));
                 }
+                var deleteExpection = this.messageRepository.Delete(deleteResult.message.Id);
+                if (deleteExpection != null)
+                {
+                    logger.Info($"DeleteMessage messageRepository.Delete expcetion{JsonConvert.SerializeObject(deleteExpection)}");
+                }
                 var queryById = this.subjectPoRepository.GetById(input.SubjectId);
                 if (queryById.exception != null)
                 {
@@ -145,6 +165,11 @@ namespace MessageTest.Controller
                 if (upsertSubject.subject == null)
                 {
                     logger.Info($"DeleteMessage subjectPoRepository.Upsert failed{JsonConvert.SerializeObject(input)}");
+                }
+                var upsertExpection = this.subjectRepository.Save(upsertSubject.subject);
+                if (upsertExpection != null) 
+                {
+                    logger.Info($"DeleteMessage subjectRepository.Save failed{JsonConvert.SerializeObject(upsertExpection)}");
                 }
                 result.Content = new StringContent(JsonConvert.SerializeObject(new DeleteMessageResponseDto
                 {
@@ -166,7 +191,8 @@ namespace MessageTest.Controller
             try
             {
                 var result = new HttpResponseMessage(HttpStatusCode.OK);
-                var queryResult = this.messagePoRepository.Query(input);
+  
+                var queryResult = this.messageRepository.GetPageMessage(input);
 
                 if (queryResult.exception != null)
                 {

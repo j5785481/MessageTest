@@ -27,6 +27,7 @@ namespace MessageTest.Tests.Controller
         private Mock<IMessagePoRepository> messagePoRepository = new Mock<IMessagePoRepository>();
         private Mock<ISubjectPoRepository> subjectPoRepository = new Mock<ISubjectPoRepository>();
         private Mock<IMessageRepository> messageRepository = new Mock<IMessageRepository>();
+        private Mock<ISubjectRepository> subjectRepository = new Mock<ISubjectRepository>();
         private Mock<ILifetimeScope> lifetimeScope = new Mock<ILifetimeScope>();
 
         [TestMethod]
@@ -72,7 +73,7 @@ namespace MessageTest.Tests.Controller
                     MessageCount = 1
                 }));
 
-            var controller = new MessageController(messagePoRepository.Object, subjectPoRepository.Object, lifetimeScope.Object);
+            var controller = new MessageController(messagePoRepository.Object, subjectPoRepository.Object, messageRepository.Object, subjectRepository.Object, lifetimeScope.Object);
             controller.Request = new HttpRequestMessage();
             controller.Configuration = new HttpConfiguration();
             var postResult = controller.PostMessage(addMessageReqDto);
@@ -145,7 +146,7 @@ namespace MessageTest.Tests.Controller
                 }));
             
 
-            var controller = new MessageController(messagePoRepository.Object, subjectPoRepository.Object, lifetimeScope.Object);
+            var controller = new MessageController(messagePoRepository.Object, subjectPoRepository.Object, messageRepository.Object, subjectRepository.Object, lifetimeScope.Object);
             controller.Request = new HttpRequestMessage();
             controller.Configuration = new HttpConfiguration();
             var postResult = controller.DeleteMessage(deleteMessageReqDto);
@@ -220,7 +221,7 @@ namespace MessageTest.Tests.Controller
                 }));
 
 
-            var controller = new MessageController(messagePoRepository.Object, subjectPoRepository.Object, lifetimeScope.Object);
+            var controller = new MessageController(messagePoRepository.Object, subjectPoRepository.Object, messageRepository.Object, subjectRepository.Object, lifetimeScope.Object);
             controller.Request = new HttpRequestMessage();
             controller.Configuration = new HttpConfiguration();
             var postResult = controller.DeleteMessage(deleteMessageReqDto);
@@ -273,7 +274,7 @@ namespace MessageTest.Tests.Controller
                     }
                 }));
 
-            var controller = new MessageController(messagePoRepository.Object, subjectPoRepository.Object, lifetimeScope.Object);
+            var controller = new MessageController(messagePoRepository.Object, subjectPoRepository.Object, messageRepository.Object, subjectRepository.Object, lifetimeScope.Object);
             controller.Request = new HttpRequestMessage();
             controller.Configuration = new HttpConfiguration();
             var queryResult = controller.QueryMessage(queryMessageReqDto);
@@ -287,6 +288,63 @@ namespace MessageTest.Tests.Controller
 
             Assert.IsNotNull(responseDto);
             Assert.AreEqual(2, responseDto.TotalCount); // 驗證是否拿到 Mock 給的 筆數
+        }
+
+        [TestMethod]
+        public void QueryMessageTest()
+        {
+            var messageId = Guid.NewGuid().ToString();
+            var queryMessageReqDto = new QueryMessageRequestDto
+            {
+                SubjectId = 1,
+                LimitNumber = 1,
+                Page = 1,
+            };
+            var clientTimeStamp = 1778549400;
+            var timeStampTime = TimeStampHelper.ToLocalDateTime(clientTimeStamp);
+            messageRepository.Setup(p => p.GetPageMessage(It.IsAny<QueryMessageRequestDto>()))
+                .Returns((null, new List<Message>()
+                {
+                    new Message
+                    {
+                        SubjectId = 1,
+                        Id = new Guid().ToString(),
+                        Content = "第一筆測試訊息",
+                        UserId = "115051801",
+                        CreatedAt = timeStampTime,
+                    },
+                    //new Message
+                    //{
+                    //    SubjectId = 1,
+                    //    Id = new Guid().ToString(),
+                    //    Content = "第二筆測試訊息",
+                    //    UserId = "115051801",
+                    //    CreatedAt = timeStampTime,
+                    //},
+                    //new Message
+                    //{
+                    //    SubjectId = 2,
+                    //    Id = new Guid().ToString(),
+                    //    Content = "第二筆測試訊息",
+                    //    UserId = "115051801",
+                    //    CreatedAt = timeStampTime,
+                    //}
+                }));
+
+            var controller = new MessageController(messagePoRepository.Object, subjectPoRepository.Object, messageRepository.Object, subjectRepository.Object, lifetimeScope.Object);
+            controller.Request = new HttpRequestMessage();
+            controller.Configuration = new HttpConfiguration();
+            var queryResult = controller.QueryMessage(queryMessageReqDto);
+
+            Assert.AreEqual(HttpStatusCode.OK, queryResult.StatusCode);
+
+            messageRepository.Verify(p => p.GetPageMessage(It.Is<QueryMessageRequestDto>(s => s.SubjectId == 1)), Times.Once, "messageRepository GetPageMessage 應該要被呼叫一次");
+
+            var responseString = queryResult.Content.ReadAsStringAsync().Result;
+            var responseDto = JsonConvert.DeserializeObject<QueryMessageResponseDto>(responseString);
+
+            Assert.IsNotNull(responseDto);
+            Assert.AreEqual(1, responseDto.TotalCount); // 驗證是否拿到 Mock 給的 筆數
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MessageTest.Domain.DTO;
 using MessageTest.Domain.Model;
 using MessageTest.Domain.Repository;
 using MessageTest.Persistent.Mongo;
@@ -90,6 +91,55 @@ namespace MessageTest.Persistent.Tests.Mongo
             Assert.IsNull(getBtIdResult.exception);
             Assert.IsNotNull(getBtIdResult.messages);
             Assert.AreEqual(2, getBtIdResult.messages.Count);
+        }
+
+        [TestMethod]
+        public void GetPageMessage()
+        {
+            var guid = Guid.NewGuid().ToString();
+            var saveException1 = repo.Save(new Message
+            {
+                SubjectId = 1,
+                Id = guid,
+                Content = "Test",
+                UserId = "115051401",
+                CreatedAt = DateTime.Now
+            });
+
+            Assert.IsNull(saveException1);
+            guid = Guid.NewGuid().ToString();
+            var saveException2 = repo.Save(new Message
+            {
+                SubjectId = 1,
+                Id = guid,
+                Content = "Test",
+                UserId = "115051402",
+                CreatedAt = DateTime.Now
+            });
+            Assert.IsNull(saveException2);
+
+            guid = Guid.NewGuid().ToString();
+            var saveException3 = repo.Save(new Message
+            {
+                SubjectId = 2,
+                Id = guid,
+                Content = "Test",
+                UserId = "115051402",
+                CreatedAt = DateTime.Now
+            });
+            Assert.IsNull(saveException3);
+
+            var queryMessageReqDto = new QueryMessageRequestDto
+            {
+                SubjectId = 1,
+                LimitNumber = 2,
+                Page = 1,
+            };
+
+            var queryMessageResult = repo.GetPageMessage(queryMessageReqDto);
+            Assert.IsNull(queryMessageResult.exception);
+            Assert.IsNotNull(queryMessageResult.messages);
+            Assert.AreEqual(1, queryMessageResult.messages.Count);
         }
     }
 }

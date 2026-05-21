@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
@@ -20,17 +21,24 @@ namespace MessageTest.Controller
         private readonly ISubjectPoRepository subjectPoRepository;
         private readonly ISubjectRepository subjectRepository;
         private readonly ISubjectCacheRepository subjectCacheRepository;
+        private readonly IMessagePoRepository messagePoRepository;
+        private readonly IMessageRepository messageRepository;
         private readonly ISubjectColdDownRepository subjectColdDownRepository;
         private readonly ILifetimeScope lifetimeScope;
         private readonly ILogger logger = LogManager.GetLogger("MessageTest")
             .WithProperty("Type", nameof(SubjectController));
 
-        public SubjectController(ISubjectPoRepository subjectPoRepository, ISubjectRepository subjectRepository, ISubjectCacheRepository subjectCacheRepository, ISubjectColdDownRepository subjectColdDownRepository, ILifetimeScope lifetimeScope)
+        public SubjectController(ISubjectPoRepository subjectPoRepository, ISubjectRepository subjectRepository, 
+            ISubjectCacheRepository subjectCacheRepository, ISubjectColdDownRepository subjectColdDownRepository,
+            IMessagePoRepository messagePoRepository, IMessageRepository messageRepository,
+            ILifetimeScope lifetimeScope)
         {
             this.subjectPoRepository = subjectPoRepository;
             this.subjectRepository = subjectRepository;
             this.subjectCacheRepository = subjectCacheRepository;
             this.subjectColdDownRepository = subjectColdDownRepository;
+            this.messagePoRepository = messagePoRepository;
+            this.messageRepository = messageRepository;
             this.lifetimeScope = lifetimeScope;
         }
 
@@ -87,6 +95,31 @@ namespace MessageTest.Controller
         {
             try
             {
+                var getByIdResult = this.messageRepository.GetById(subjectId);
+                if(getByIdResult.exception == null)
+                {
+                    logger.Info($"DeleteSubject messageRepository.GetById expection{JsonConvert.SerializeObject(getByIdResult.exception)}");
+                }
+                List<DeleteMessageRequestDto> deleteMessageReqDtos = getByIdResult.messages
+                    .Select(msg => new DeleteMessageRequestDto
+                    {
+                        UserId = msg.UserId,
+                        MessageId = msg.Id,
+                        SubjectId = msg.SubjectId
+                    })
+                    .ToList();
+                var batchDeleteResult = this.messagePoRepository.BatchDelete(deleteMessageReqDtos);
+                if (batchDeleteResult.exception != null)
+                {
+                    logger.Info($"DeleteSubject messagePoRepository.BatchDelete expection{JsonConvert.SerializeObject(batchDeleteResult.exception)}");
+                }
+                List<string> messageIds = batchDeleteResult.messages
+                    .Select(msg => msg.Id).ToList();
+                var batchDeleteExpection = this.messageRepository.BatchDelete(messageIds);
+                if(batchDeleteExpection != null)
+                {
+                    logger.Info($"DeleteSubject messageRepository.BatchDelete expection{JsonConvert.SerializeObject(batchDeleteExpection)}");
+                }
                 var deleteResult = this.subjectPoRepository.Delete(subjectId);
 
                 if (deleteResult.exception != null)

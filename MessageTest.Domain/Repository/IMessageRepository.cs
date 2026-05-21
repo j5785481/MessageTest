@@ -18,16 +18,23 @@ namespace MessageTest.Domain.Repository
         Exception Save(Message message);
 
         /// <summary>
-        /// 刪除主題
+        /// 刪除留言
         /// </summary>
-        /// <param name="messageId">刪除主題的ID</param>
+        /// <param name="messageId">刪除留言的ID</param>
         /// <returns>例外</returns>
         Exception Delete(string messageId);
 
         /// <summary>
+        /// 批次刪除留言
+        /// </summary>
+        /// <param name="messageIds">要刪除留言的ID</param>
+        /// <returns>例外</returns>
+        Exception BatchDelete(List<string> messageIds);
+
+        /// <summary>
         /// 查詢主題by SubjectId
         /// </summary>
-        /// <param name="subjectId">刪除主題的ID</param>
+        /// <param name="subjectId">查詢主題的ID</param>
         /// <returns>主題所有留言</returns>
         (Exception exception, List<Message> messages) GetById(int subjectId);
 
