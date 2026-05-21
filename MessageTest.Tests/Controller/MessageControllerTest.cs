@@ -26,6 +26,7 @@ namespace MessageTest.Tests.Controller
     {
         private Mock<IMessagePoRepository> messagePoRepository = new Mock<IMessagePoRepository>();
         private Mock<ISubjectPoRepository> subjectPoRepository = new Mock<ISubjectPoRepository>();
+        private Mock<IMessageRepository> messageRepository = new Mock<IMessageRepository>();
         private Mock<ILifetimeScope> lifetimeScope = new Mock<ILifetimeScope>();
 
         [TestMethod]
@@ -60,6 +61,16 @@ namespace MessageTest.Tests.Controller
                     CreatedAt = timeStampTime,
                     MessageCount = 0
                 }));
+            subjectPoRepository.Setup(p => p.Upsert(It.IsAny<Subject>()))
+                .Returns((null, new Subject()
+                {
+                    Id = 1,
+                    Title = "Test",
+                    Content = "Test",
+                    CreatorId = "115051201",
+                    CreatedAt = timeStampTime,
+                    MessageCount = 1
+                }));
 
             var controller = new MessageController(messagePoRepository.Object, subjectPoRepository.Object, lifetimeScope.Object);
             controller.Request = new HttpRequestMessage();
@@ -69,7 +80,8 @@ namespace MessageTest.Tests.Controller
             Assert.AreEqual(HttpStatusCode.OK, postResult.StatusCode);
 
             messagePoRepository.Verify(p => p.Add(It.Is<AddMessageRequestDto>(s => s.Content != "")), Times.Once, "MSSQL Add 應該要被呼叫一次");
-
+            subjectPoRepository.Verify(p => p.GetById(It.Is<int>(s => s == 1)), Times.Once, "subjectPoRepository GetById 應該要被呼叫一次");
+            subjectPoRepository.Verify(p => p.Upsert(It.Is<Subject>(s => s.Id == 1)), Times.Once, "subjectPoRepository Upsert 應該要被呼叫一次");
             var responseString = postResult.Content.ReadAsStringAsync().Result;
             var responseDto = JsonConvert.DeserializeObject<AddMessageResponseDto>(responseString);
 
@@ -111,26 +123,27 @@ namespace MessageTest.Tests.Controller
                     UserId = "115051801",
                     CreatedAt = timeStampTime
                 }));
-            subjectPoRepository.Setup(p => p.Upsert(It.IsAny<Subject>()))
-                .Returns((null, new Subject()
-                {
-                    Id = 1,
-                    Title = "Test",
-                    Content = "Test",
-                    CreatorId = "115051201",
-                    CreatedAt = timeStampTime,
-                    MessageCount = 0
-                }));
             subjectPoRepository.Setup(p => p.GetById(It.IsAny<int>()))
                 .Returns((null, new Subject()
                 {
                     Id = 1,
                     Title = "Test",
                     Content = "Test",
-                    CreatorId = "115051201",
+                    CreatorId = "115051801",
+                    CreatedAt = timeStampTime,
+                    MessageCount = 1
+                }));
+            subjectPoRepository.Setup(p => p.Upsert(It.IsAny<Subject>()))
+                .Returns((null, new Subject()
+                {
+                    Id = 1,
+                    Title = "Test",
+                    Content = "Test",
+                    CreatorId = "115051801",
                     CreatedAt = timeStampTime,
                     MessageCount = 0
                 }));
+            
 
             var controller = new MessageController(messagePoRepository.Object, subjectPoRepository.Object, lifetimeScope.Object);
             controller.Request = new HttpRequestMessage();
@@ -139,7 +152,85 @@ namespace MessageTest.Tests.Controller
 
             Assert.AreEqual(HttpStatusCode.OK, postResult.StatusCode);
 
+            messagePoRepository.Verify(p => p.GetByAccount(It.Is<string>(s => s == "115051801")), Times.Once, "GetByAccount 應該要被呼叫一次");
             messagePoRepository.Verify(p => p.Delete(It.Is<DeleteMessageRequestDto>(s => s.UserId == "115051801")), Times.Once, "MSSQL Delete 應該要被呼叫一次");
+            subjectPoRepository.Verify(p => p.GetById(It.Is<int>(s => s == 1)), Times.Once, "GetById 應該要被呼叫一次");
+            subjectPoRepository.Verify(p => p.Upsert(It.Is<Subject>(s => s.CreatorId == "115051801")), Times.Once, "Upsert 應該要被呼叫一次");
+
+            var responseString = postResult.Content.ReadAsStringAsync().Result;
+            var responseDto = JsonConvert.DeserializeObject<DeleteMessageResponseDto>(responseString);
+
+            Assert.IsNotNull(responseDto);
+            Assert.AreEqual(DeleteMessageStatus.Success, responseDto.Status);
+            Assert.AreEqual(1, responseDto.Message.SubjectId); // 驗證是否拿到 Mock 給的 Id
+        }
+
+        [TestMethod]
+        public void BatchDeleteTest()
+        {
+            var messageId = Guid.NewGuid().ToString();
+            var deleteMessageReqDto = new DeleteMessageRequestDto
+            {
+                UserId = "115051801",
+                MessageId = messageId,
+                SubjectId = 1,
+            };
+            var clientTimeStamp = 1778549400;
+            var timeStampTime = TimeStampHelper.ToLocalDateTime(clientTimeStamp);
+            messagePoRepository.Setup(p => p.GetByAccount(It.IsAny<string>()))
+                .Returns((null, new List<Message>
+                {
+                    new Message()
+                    {
+                        SubjectId = 1,
+                        Id = messageId,
+                        Content = "Test",
+                        UserId = "115051801",
+                        CreatedAt = timeStampTime
+                    }
+                }));
+            messagePoRepository.Setup(p => p.Delete(It.IsAny<DeleteMessageRequestDto>()))
+                .Returns((null, new Message()
+                {
+                    SubjectId = 1,
+                    Id = messageId,
+                    Content = "Test",
+                    UserId = "115051801",
+                    CreatedAt = timeStampTime
+                }));
+            subjectPoRepository.Setup(p => p.GetById(It.IsAny<int>()))
+                .Returns((null, new Subject()
+                {
+                    Id = 1,
+                    Title = "Test",
+                    Content = "Test",
+                    CreatorId = "115051801",
+                    CreatedAt = timeStampTime,
+                    MessageCount = 1
+                }));
+            subjectPoRepository.Setup(p => p.Upsert(It.IsAny<Subject>()))
+                .Returns((null, new Subject()
+                {
+                    Id = 1,
+                    Title = "Test",
+                    Content = "Test",
+                    CreatorId = "115051801",
+                    CreatedAt = timeStampTime,
+                    MessageCount = 0
+                }));
+
+
+            var controller = new MessageController(messagePoRepository.Object, subjectPoRepository.Object, lifetimeScope.Object);
+            controller.Request = new HttpRequestMessage();
+            controller.Configuration = new HttpConfiguration();
+            var postResult = controller.DeleteMessage(deleteMessageReqDto);
+
+            Assert.AreEqual(HttpStatusCode.OK, postResult.StatusCode);
+
+            messagePoRepository.Verify(p => p.GetByAccount(It.Is<string>(s => s == "115051801")), Times.Once, "GetByAccount 應該要被呼叫一次");
+            messagePoRepository.Verify(p => p.Delete(It.Is<DeleteMessageRequestDto>(s => s.UserId == "115051801")), Times.Once, "MSSQL Delete 應該要被呼叫一次");
+            subjectPoRepository.Verify(p => p.GetById(It.Is<int>(s => s == 1)), Times.Once, "GetById 應該要被呼叫一次");
+            subjectPoRepository.Verify(p => p.Upsert(It.Is<Subject>(s => s.CreatorId == "115051801")), Times.Once, "Upsert 應該要被呼叫一次");
 
             var responseString = postResult.Content.ReadAsStringAsync().Result;
             var responseDto = JsonConvert.DeserializeObject<DeleteMessageResponseDto>(responseString);

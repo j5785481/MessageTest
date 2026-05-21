@@ -113,7 +113,7 @@ namespace MessageTest.Controller
             }
             catch (Exception ex)
             {
-                logger.Error(ex, $"delete subject failed {JsonConvert.SerializeObject(input)}");
+                logger.Error(ex, $"delete subject failed {JsonConvert.SerializeObject(subjectId)}");
                 return this.Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
             }
         }
