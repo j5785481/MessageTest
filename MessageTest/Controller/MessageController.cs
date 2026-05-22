@@ -58,13 +58,14 @@ namespace MessageTest.Controller
                     }));
                     return result;
                 }
+                var nowTaipei = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(8)).DateTime;
                 var message = new Message
                 {
                     Id = Guid.NewGuid().ToString(),
                     SubjectId = input.SubjectId,
                     Content = input.Content,
                     UserId = input.UserId,
-                    CreatedAt = DateTime.UtcNow,
+                    CreatedAt = nowTaipei,
                 };
                 var redisException = this.messageCacheRepository.Set(input.SubjectId.ToString(), new[] { message });
                 if (redisException != null)
@@ -72,7 +73,7 @@ namespace MessageTest.Controller
                     result.Content = new StringContent(JsonConvert.SerializeObject(new AddMessageResponseDto
                     {
                         Status = AddMessageStatus.Fail,
-                        Message = message
+                        Message = null
                     }));
                     return result;
                 }
