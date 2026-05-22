@@ -8,6 +8,9 @@ using MessageTest.Domain.Model;
 
 namespace MessageTest.Domain.Repository
 {
+    /// <summary>
+    /// MSSQL Repository
+    /// </summary>
     public interface IMessagePoRepository
     {
         /// <summary>
@@ -16,6 +19,13 @@ namespace MessageTest.Domain.Repository
         /// <param name="req">留言Request</param>
         /// <returns>留言結果</returns>
         (Exception exception, Message message) Add(AddMessageRequestDto req);
+
+        /// <summary>
+        /// 批次新增留言
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        (Exception exception, List<Message> messages) BatchAdd(List<Message> input);
 
         /// <summary>
         /// 刪除留言

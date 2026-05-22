@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using Autofac;
 using MessageTest.Domain.DTO;
+using MessageTest.Domain.Model;
 using MessageTest.Domain.Repository;
 using Newtonsoft.Json;
 using NLog;
@@ -20,17 +21,20 @@ namespace MessageTest.Controller
         private readonly ISubjectPoRepository subjectPoRepository;
         private readonly IMessageRepository messageRepository;
         private readonly ISubjectRepository subjectRepository;
+        private readonly IMessageCacheRepository messageCacheRepository;
         private readonly ILifetimeScope lifetimeScope;
         private readonly ILogger logger = LogManager.GetLogger("MessageTest")
             .WithProperty("Type", nameof(MessageController));
 
         public MessageController(IMessagePoRepository messagePoRepository, ISubjectPoRepository subjectPoRepository
-            , IMessageRepository messageRepository, ISubjectRepository subjectRepository, ILifetimeScope lifetimeScope)
+            , IMessageRepository messageRepository, ISubjectRepository subjectRepository
+            , IMessageCacheRepository messageCacheRepository, ILifetimeScope lifetimeScope)
         {
             this.messagePoRepository = messagePoRepository;
             this.subjectPoRepository = subjectPoRepository;
             this.messageRepository = messageRepository;
             this.subjectRepository = subjectRepository;
+            this.messageCacheRepository = messageCacheRepository;
             this.lifetimeScope = lifetimeScope;
         }
 
@@ -52,46 +56,30 @@ namespace MessageTest.Controller
                         Status = AddMessageStatus.QueryHasNotSubject,
                         Message = null
                     }));
+                    return result;
                 }
-
-                var addMessage = this.messagePoRepository.Add(input);
-
-                if (addMessage.exception != null)
+                var message = new Message
                 {
-                    throw addMessage.exception;
-                }
-                if (addMessage.message == null)
+                    Id = Guid.NewGuid().ToString(),
+                    SubjectId = input.SubjectId,
+                    Content = input.Content,
+                    UserId = input.UserId,
+                    CreatedAt = DateTime.UtcNow,
+                };
+                var redisException = this.messageCacheRepository.Set(input.SubjectId.ToString(), new[] { message });
+                if (redisException != null)
                 {
                     result.Content = new StringContent(JsonConvert.SerializeObject(new AddMessageResponseDto
                     {
                         Status = AddMessageStatus.Fail,
-                        Message = null
+                        Message = message
                     }));
-                }
-                var messageSaveException = this.messageRepository.Save(addMessage.message);
-                if (messageSaveException != null)
-                {
-                    logger.Info($"PostMessage messageRepository.Save expcetion{JsonConvert.SerializeObject(messageSaveException)}");
-                }
-                querySubject.subject.MessageCount = querySubject.subject.MessageCount + 1;
-                var upsertSubject = this.subjectPoRepository.Upsert(querySubject.subject);
-                if (upsertSubject.exception != null) 
-                {
-                    logger.Info($"PostMessage subjectPoRepository.Upsert expcetion{JsonConvert.SerializeObject(upsertSubject.exception)}");
-                }
-                if(upsertSubject.subject == null)
-                {
-                    logger.Info($"PostMessage subjectPoRepository.Upsert failed{JsonConvert.SerializeObject(input)}");
-                }
-                var subjectSaveException = this.subjectRepository.Save(upsertSubject.subject);
-                if (subjectSaveException != null)
-                {
-                    logger.Info($"PostMessage subjectRepository.Save expcetion{JsonConvert.SerializeObject(subjectSaveException)}");
+                    return result;
                 }
                 result.Content = new StringContent(JsonConvert.SerializeObject(new AddMessageResponseDto
                 {
                     Status = AddMessageStatus.Success,
-                    Message = addMessage.message
+                    Message = message
                 }));
                 return result;
             }

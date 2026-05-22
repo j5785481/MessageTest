@@ -60,6 +60,66 @@ namespace MessageTest.Persistent.Sql
             }
         }
 
+        public (Exception exception, List<Message> messages) BatchAdd(List<Message> input)
+        {
+            try
+            {
+                using (var cn = new SqlConnection(this.connectionString))
+                {
+                    if (input == null || !input.Any())
+                        return (null, null);
+
+                    // 1. 準備 TVP 資料：型態指定為 string
+                    var udt = new DataTable();
+                    udt.Columns.Add(nameof(MessagePo.f_id), typeof(string));
+                    udt.Columns.Add(nameof(MessagePo.f_subjectId), typeof(int));
+                    udt.Columns.Add(nameof(MessagePo.f_content), typeof(string));
+                    udt.Columns.Add(nameof(MessagePo.f_userId), typeof(string));
+                    udt.Columns.Add(nameof(MessagePo.f_createdAt), typeof(DateTime));
+
+                    foreach (var message in input)
+                    {
+                        var dr = udt.NewRow();
+                        dr[nameof(MessagePo.f_id)] = message.Id;
+                        dr[nameof(MessagePo.f_subjectId)] = message.SubjectId;
+                        dr[nameof(MessagePo.f_content)] = message.Content;
+                        dr[nameof(MessagePo.f_userId)] = message.UserId;
+                        dr[nameof(MessagePo.f_createdAt)] = message.CreatedAt;
+                        udt.Rows.Add(dr);
+                    }
+
+                    // 2. 呼叫 SP，並對應到剛剛建立的 dbo.StringListType
+                    var batchAddResult = cn.Query<MessagePo>(
+                        "pro_messageBatchUpsert",
+                        new
+                        {
+                            BatchMessages = udt.AsTableValuedParameter("dbo.type_batchMessage")
+                        },
+                        commandType: CommandType.StoredProcedure
+                    ).ToList();
+
+                    if (batchAddResult == null || !batchAddResult.Any())
+                        return (null, null);
+
+                    // 3. 將 Po 轉成 Domain Object List
+                    var messages = batchAddResult.Select(po => new Message
+                    {
+                        SubjectId = po.f_subjectId,
+                        Id = po.f_id, 
+                        Content = po.f_content,
+                        UserId = po.f_userId,
+                        CreatedAt = po.f_createdAt,
+                    }).ToList();
+
+                    return (null, messages);
+                }
+            }
+            catch (Exception ex)
+            {
+                return (ex, (List<Message>)null);
+            }
+        }
+
         public (Exception exception, List<Message> messages) BatchDelete(List<DeleteMessageRequestDto> reqs)
         {
             try
