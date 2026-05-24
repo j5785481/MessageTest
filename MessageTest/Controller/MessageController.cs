@@ -67,7 +67,7 @@ namespace MessageTest.Controller
                     UserId = input.UserId,
                     CreatedAt = nowTaipei,
                 };
-                var redisException = this.messageCacheRepository.Set(input.SubjectId.ToString(), new[] { message });
+                var redisException = this.messageCacheRepository.Set(new[] { message });
                 if (redisException != null)
                 {
                     result.Content = new StringContent(JsonConvert.SerializeObject(new AddMessageResponseDto

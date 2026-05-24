@@ -39,5 +39,31 @@ namespace MessageTest.Applibs
 		///     芒果連線字串
 		/// </summary>
 		public static string MongoDBConn = ConfigurationManager.ConnectionStrings["MongoDB"].ConnectionString;
+
+        /// <summary>
+        ///     RMQ帳號
+        /// </summary>
+        public static readonly string RabbitUserName = ConfigurationManager.AppSettings["RabbitUserName"];
+
+        /// <summary>
+        ///     RMQ密碼
+        /// </summary>
+        public static readonly string RabbitPassword = ConfigurationManager.AppSettings["RabbitPassword"];
+
+        /// <summary>
+        ///     RMQ URL
+        /// </summary>
+        public static readonly string RabbitMqUri = ConfigurationManager.AppSettings["RabbitMqUri"];
+
+        /// <summary>
+		///     本身Topic
+		/// </summary>
+		public static readonly string Topic = ConfigurationManager.AppSettings["Topic"];
+
+        /// <summary>
+		///     訂閱對象Topic
+		/// </summary>
+		public static readonly List<string> SubscribeTopics =
+            ConfigurationManager.AppSettings["SubscribeTopics"].Split(',').ToList();
     }
 }

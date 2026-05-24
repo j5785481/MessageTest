@@ -8,6 +8,9 @@ using MessageTest.Domain.Model;
 
 namespace MessageTest.Domain.Repository
 {
+    /// <summary>
+    /// Mongo訊息 Repository
+    /// </summary>
     public interface IMessageRepository
     {
         /// <summary>
@@ -16,6 +19,13 @@ namespace MessageTest.Domain.Repository
         /// <param name="message">儲存的留言Request</param>
         /// <returns>例外</returns>
         Exception Save(Message message);
+
+        /// <summary>
+        /// 批次儲存留言
+        /// </summary>
+        /// <param name="messages"></param>
+        /// <returns></returns>
+        Exception BatchSave(List<Message> messages);
 
         /// <summary>
         /// 刪除留言

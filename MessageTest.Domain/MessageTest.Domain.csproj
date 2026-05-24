@@ -57,6 +57,7 @@
     <Compile Include="DTO\QuerySubjectRequestDto.cs" />
     <Compile Include="DTO\QuerySubjectResponseDto.cs" />
     <Compile Include="DTO\QuerySubjectStatus.cs" />
+    <Compile Include="JobEvent\ProcessMessageAddJobEvent.cs" />
     <Compile Include="Model\Message.cs" />
     <Compile Include="Model\MessagePo.cs" />
     <Compile Include="Model\Subject.cs" />

@@ -13,9 +13,16 @@ namespace MessageTest.Domain.Repository
         /// <summary>
         /// 儲存主題
         /// </summary>
-        /// <param name="subject">儲存的主題Request</param>
+        /// <param name="subject">儲存的主題物件</param>
         /// <returns>例外</returns>
         Exception Save(Subject subject);
+
+        /// <summary>
+        /// 批次儲存主題
+        /// </summary>
+        /// <param name="subjects">儲存的主題物件</param>
+        /// <returns></returns>
+        Exception BatchSave(List<Subject> subjects);
 
         /// <summary>
         /// 刪除主題

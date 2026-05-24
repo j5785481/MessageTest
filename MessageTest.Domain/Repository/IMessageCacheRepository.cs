@@ -14,11 +14,11 @@ namespace MessageTest.Domain.Repository
         /// <summary>
         ///     set
         /// </summary>
-        Exception Set<T>(string id, IEnumerable<T> actions);
+        Exception Set<T>(IEnumerable<T> actions);
 
         /// <summary>
         ///     pop
         /// </summary>
-        (Exception exception, IEnumerable<T> actions) Pop<T>(string id, int count);
+        (Exception exception, IEnumerable<T> actions) Pop<T>(int count);
     }
 }

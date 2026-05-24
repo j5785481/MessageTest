@@ -3,7 +3,9 @@ using System.Reflection;
 using Autofac;
 using Autofac.Integration.WebApi;
 using ForumMessageSystem.Persistent.Core;
+using Live.PubSub.Core;
 using MessageTest.Domain.Repository;
+using MessageTest.Handler.Rmq.JobSchedule;
 
 namespace MessageTest.Applibs
 {
@@ -26,6 +28,12 @@ namespace MessageTest.Applibs
             var builder = new ContainerBuilder();
             var asm = Assembly.GetExecutingAssembly();
             builder.RegisterApiControllers(asm);
+            // rmq ioc
+            builder.RegisterAssemblyTypes(asm)
+                .Where(t => t.IsAssignableTo<IRabbitMqPubSubHandler>())
+                .Named<IPubSubHandler<RabbitMqEventStream>>(t => t.Name.Replace("Handler", string.Empty))
+                .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies)
+                .SingleInstance();
 
             // sql ioc
             builder.RegisterAssemblyTypes(Assembly.Load("MessageTest.Persistent"), Assembly.Load("MessageTest.Domain"))
@@ -53,6 +61,8 @@ namespace MessageTest.Applibs
                 .WithProperty("DataBase", NoSqlService.RedisDataBase)
                 .As(t => t.GetInterfaces().FirstOrDefault(i => i.Name == $"I{t.Name}"))
                 .SingleInstance();
+
+            builder.RegisterType<ProcessMessageAddJobEventHandler>().AsSelf().PropertiesAutowired();
 
             container = builder.Build();
 

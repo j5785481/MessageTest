@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading.Tasks;
 using ForumMessageSystem.Persistent.Core;
@@ -123,6 +124,34 @@ namespace MessageTest.Persistent.Mongo
                 return null;
             }
             catch (Exception ex)
+            {
+                return ex;
+            }
+        }
+
+        public Exception BatchSave(List<Message> messages)
+        {
+            try
+            {
+                var bulk = messages.Select(msg =>
+                {
+                    var update = Builders<Message>.Update
+                        .SetOnInsert(p => p.SubjectId, msg.SubjectId)
+                        .SetOnInsert(p => p.Id, msg.Id)
+                        .SetOnInsert(p => p.Content, msg.Content)
+                        .SetOnInsert(p => p.UserId, msg.UserId)
+                        .SetOnInsert(p => p.CreatedAt, msg.CreatedAt);
+                    var filter = Builders<Message>.Filter.Eq(p => p.Id, msg.Id);
+                    return (WriteModel<Message>)new UpdateOneModel<Message>(filter, update)
+                    {
+                        IsUpsert = true
+                    };
+                });
+
+                collection.BulkWrite(bulk);
+                return null;
+            }
+            catch (Exception ex) 
             {
                 return ex;
             }

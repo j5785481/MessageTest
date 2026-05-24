@@ -19,11 +19,11 @@ namespace MessageTest.Persistent.Redis
         public int DataBase { get; set; }
         public const string CacheKey = "MessageCache";
 
-        public Exception Set<TAction>(string id, IEnumerable<TAction> actions)
+        public Exception Set<TAction>(IEnumerable<TAction> actions)
         {
             try
             {
-                string fullKey = $"{AffixKey}:{CacheKey}:{id}";
+                string fullKey = $"{AffixKey}:{CacheKey}";
                 Conn.GetDatabase(DataBase)
                     .ListRightPush(fullKey, JsonConvert.SerializeObject(actions));
                 return null;
@@ -34,7 +34,7 @@ namespace MessageTest.Persistent.Redis
             }
         }
 
-        public (Exception exception, IEnumerable<TAction> actions) Pop<TAction>(string id, int count)
+        public (Exception exception, IEnumerable<TAction> actions) Pop<TAction>(int count)
         {
             try
             {
@@ -43,7 +43,7 @@ namespace MessageTest.Persistent.Redis
                         redis.call('LTRIM', KEYS[1], ARGV[1] + 1 , -1)
                         return result 
 					",
-                    new RedisKey[] { $"{AffixKey}:{CacheKey}:{id}" }, new RedisValue[] { count - 1 });
+                    new RedisKey[] { $"{AffixKey}:{CacheKey}" }, new RedisValue[] { count - 1 });
 
                 var rs = new List<TAction>();
                 if (values != null && values.Any())

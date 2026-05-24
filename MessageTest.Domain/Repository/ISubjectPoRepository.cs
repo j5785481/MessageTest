@@ -31,8 +31,32 @@ namespace MessageTest.Domain.Repository
         /// <returns>主題所有資訊</returns>
         (Exception exception, Subject subject) Query(QuerySubjectRequestDto req);
 
+        /// <summary>
+        /// 查詢By SubjectId
+        /// </summary>
+        /// <param name="subjectId">主題Id</param>
+        /// <returns></returns>
         (Exception exception, Subject subject) GetById(int subjectId);
 
+        /// <summary>
+        /// 查詢By SubjectIds
+        /// </summary>
+        /// <param name="subjectIds">主題Ids</param>
+        /// <returns></returns>
+        (Exception exception, List<Subject> subjects) GetByIds(List<int> subjectIds);
+
+        /// <summary>
+        /// 新增更新主題
+        /// </summary>
+        /// <param name="input">主題物件</param>
+        /// <returns></returns>
         (Exception exception, Subject subject) Upsert(Subject input);
+
+        /// <summary>
+        /// 批次新增更新主題
+        /// </summary>
+        /// <param name="input">主題物件List</param>
+        /// <returns></returns>
+        (Exception exception, List<Subject> subjects) BatchUpsert(List<Subject> input);
     }
 }

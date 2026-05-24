@@ -3,8 +3,8 @@ namespace Live.PubSub.Applibs
 {
     using System;
     using System.Text;
-    using Live.Libs;
     using Live.PubSub.Core;
+    using MessageTest.Lib;
     using Newtonsoft.Json;
     using RabbitMQ.Client;
 
