@@ -12,7 +12,7 @@ namespace MessageTest.Applibs
         public static string ServiceUrl
         {
             get
-                => $"http://*:8085";
+                => $"http://*:28080";
         }
 
         /// <summary>

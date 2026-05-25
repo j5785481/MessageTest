@@ -40,10 +40,9 @@ namespace MessageTest.Handler.Rmq.JobSchedule
 
         public bool Handle(RabbitMqEventStream stream)
         {
-            System.Diagnostics.Debugger.Break();
             try
             {
-                using (var scope = AutofacConfig.Container.BeginLifetimeScope())
+                using (var scope = this.lifetimeScope.BeginLifetimeScope())
                 {
                     var cache = messageCacheRepository.Pop<Message>(5);
                     if (cache.exception != null) throw cache.exception;

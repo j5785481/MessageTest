@@ -28,11 +28,13 @@ namespace MessageTest.Tests.Controller
         private Mock<ISubjectPoRepository> subjectPoRepository = new Mock<ISubjectPoRepository>();
         private Mock<IMessageRepository> messageRepository = new Mock<IMessageRepository>();
         private Mock<ISubjectRepository> subjectRepository = new Mock<ISubjectRepository>();
+        private Mock<IMessageCacheRepository> messageCacheRepository = new Mock<IMessageCacheRepository>();
         private Mock<ILifetimeScope> lifetimeScope = new Mock<ILifetimeScope>();
 
         [TestMethod]
-        public void PostTest()
+        public void PostTest_Success()
         {
+            // 1. Arrange - 準備測試資料
             var addMessageReqDto = new AddMessageRequestDto
             {
                 UserId = "115051801",
@@ -42,16 +44,8 @@ namespace MessageTest.Tests.Controller
                 CreateTimeStamp = 1778549400
             };
             var timeStampTime = TimeStampHelper.ToLocalDateTime(addMessageReqDto.ClientTimeStamp);
-            var guId = Guid.NewGuid().ToString();
-            messagePoRepository.Setup(p => p.Add(It.IsAny<AddMessageRequestDto>()))
-                .Returns((null, new Message()
-                {
-                    SubjectId = 1,
-                    Id = guId,
-                    Content = "Test",
-                    UserId = "115051801",
-                    CreatedAt = timeStampTime
-                }));
+
+            // Mock: 模擬撈取 Subject 成功
             subjectPoRepository.Setup(p => p.GetById(It.IsAny<int>()))
                 .Returns((null, new Subject()
                 {
@@ -62,33 +56,89 @@ namespace MessageTest.Tests.Controller
                     CreatedAt = timeStampTime,
                     MessageCount = 0
                 }));
-            subjectPoRepository.Setup(p => p.Upsert(It.IsAny<Subject>()))
-                .Returns((null, new Subject()
-                {
-                    Id = 1,
-                    Title = "Test",
-                    Content = "Test",
-                    CreatorId = "115051201",
-                    CreatedAt = timeStampTime,
-                    MessageCount = 1
-                }));
 
-            var controller = new MessageController(messagePoRepository.Object, subjectPoRepository.Object, messageRepository.Object, subjectRepository.Object, lifetimeScope.Object);
+            // Mock: 模擬寫入 Redis 成功 (回傳 null 代表沒有 Exception)
+            messageCacheRepository.Setup(p => p.Set(It.IsAny<Message[]>()))
+                .Returns((Exception)null);
+
+            var controller = new MessageController(messagePoRepository.Object, subjectPoRepository.Object, messageRepository.Object, subjectRepository.Object, messageCacheRepository.Object, lifetimeScope.Object);
             controller.Request = new HttpRequestMessage();
             controller.Configuration = new HttpConfiguration();
+
+            // 2. Act - 執行方法
             var postResult = controller.PostMessage(addMessageReqDto);
-
-            Assert.AreEqual(HttpStatusCode.OK, postResult.StatusCode);
-
-            messagePoRepository.Verify(p => p.Add(It.Is<AddMessageRequestDto>(s => s.Content != "")), Times.Once, "MSSQL Add 應該要被呼叫一次");
-            subjectPoRepository.Verify(p => p.GetById(It.Is<int>(s => s == 1)), Times.Once, "subjectPoRepository GetById 應該要被呼叫一次");
-            subjectPoRepository.Verify(p => p.Upsert(It.Is<Subject>(s => s.Id == 1)), Times.Once, "subjectPoRepository Upsert 應該要被呼叫一次");
             var responseString = postResult.Content.ReadAsStringAsync().Result;
             var responseDto = JsonConvert.DeserializeObject<AddMessageResponseDto>(responseString);
 
+            // 3. Assert - 驗證結果
+            Assert.AreEqual(HttpStatusCode.OK, postResult.StatusCode);
             Assert.IsNotNull(responseDto);
             Assert.AreEqual(AddMessageStatus.Success, responseDto.Status);
-            Assert.AreEqual(1, responseDto.Message.SubjectId); // 驗證是否拿到 Mock 給的 Id
+            Assert.AreEqual(1, responseDto.Message.SubjectId);
+            Assert.AreEqual("Message Test", responseDto.Message.Content);
+
+            // 驗證是否有依照新流程正確呼叫對應的方法
+            subjectPoRepository.Verify(p => p.GetById(It.Is<int>(s => s == 1)), Times.Once, "subjectPoRepository GetById 應該要被呼叫一次");
+            messageCacheRepository.Verify(p => p.Set(It.IsAny<Message[]>()), Times.Once, "寫入 Redis 緩存 應該要被呼叫一次");
+
+            // 驗證「不應該」呼叫直接寫入資料庫的方法
+            messagePoRepository.Verify(p => p.Add(It.IsAny<AddMessageRequestDto>()), Times.Never, "已經改為寫入快取，不應再直接呼叫 MSSQL Add");
+        }
+
+        [TestMethod]
+        public void PostTest_SubjectNotFound_ShouldReturnQueryHasNotSubject()
+        {
+            // 1. Arrange
+            var addMessageReqDto = new AddMessageRequestDto { UserId = "11", SubjectId = 999, Content = "Test" };
+
+            // Mock: 模擬找不到 Subject (回傳 subject 為 null)
+            subjectPoRepository.Setup(p => p.GetById(It.IsAny<int>()))
+                .Returns((null, (Subject)null));
+
+            var controller = new MessageController(messagePoRepository.Object, subjectPoRepository.Object, messageRepository.Object, subjectRepository.Object, messageCacheRepository.Object, lifetimeScope.Object);
+            controller.Request = new HttpRequestMessage();
+            controller.Configuration = new HttpConfiguration();
+
+            // 2. Act
+            var postResult = controller.PostMessage(addMessageReqDto);
+            var responseString = postResult.Content.ReadAsStringAsync().Result;
+            var responseDto = JsonConvert.DeserializeObject<AddMessageResponseDto>(responseString);
+
+            // 3. Assert
+            Assert.AreEqual(HttpStatusCode.OK, postResult.StatusCode);
+            Assert.AreEqual(AddMessageStatus.QueryHasNotSubject, responseDto.Status); // 驗證找不到主題的狀態
+            Assert.IsNull(responseDto.Message);
+
+            // 驗證流程在找不到 Subject 時，絕對不能呼叫 Redis 寫入
+            messageCacheRepository.Verify(p => p.Set(It.IsAny<Message[]>()), Times.Never);
+        }
+
+        [TestMethod]
+        public void PostTest_RedisSetFail_ShouldReturnFailStatus()
+        {
+            // 1. Arrange
+            var addMessageReqDto = new AddMessageRequestDto { UserId = "11", SubjectId = 1, Content = "Test" };
+
+            subjectPoRepository.Setup(p => p.GetById(It.IsAny<int>()))
+                .Returns((null, new Subject() { Id = 1 }));
+
+            // Mock: 模擬寫入 Redis 發生例外
+            messageCacheRepository.Setup(p => p.Set(It.IsAny<Message[]>()))
+                .Returns(new Exception("Redis 連線失敗"));
+
+            var controller = new MessageController(messagePoRepository.Object, subjectPoRepository.Object, messageRepository.Object, subjectRepository.Object, messageCacheRepository.Object, lifetimeScope.Object);
+            controller.Request = new HttpRequestMessage();
+            controller.Configuration = new HttpConfiguration();
+
+            // 2. Act
+            var postResult = controller.PostMessage(addMessageReqDto);
+            var responseString = postResult.Content.ReadAsStringAsync().Result;
+            var responseDto = JsonConvert.DeserializeObject<AddMessageResponseDto>(responseString);
+
+            // 3. Assert
+            Assert.AreEqual(HttpStatusCode.OK, postResult.StatusCode);
+            Assert.AreEqual(AddMessageStatus.Fail, responseDto.Status); // 驗證 Redis 失敗會回傳 Fail
+            Assert.IsNull(responseDto.Message);
         }
 
         [TestMethod]
@@ -146,7 +196,7 @@ namespace MessageTest.Tests.Controller
                 }));
             
 
-            var controller = new MessageController(messagePoRepository.Object, subjectPoRepository.Object, messageRepository.Object, subjectRepository.Object, lifetimeScope.Object);
+            var controller = new MessageController(messagePoRepository.Object, subjectPoRepository.Object, messageRepository.Object, subjectRepository.Object, messageCacheRepository.Object, lifetimeScope.Object);
             controller.Request = new HttpRequestMessage();
             controller.Configuration = new HttpConfiguration();
             var postResult = controller.DeleteMessage(deleteMessageReqDto);
@@ -221,7 +271,7 @@ namespace MessageTest.Tests.Controller
                 }));
 
 
-            var controller = new MessageController(messagePoRepository.Object, subjectPoRepository.Object, messageRepository.Object, subjectRepository.Object, lifetimeScope.Object);
+            var controller = new MessageController(messagePoRepository.Object, subjectPoRepository.Object, messageRepository.Object, subjectRepository.Object, messageCacheRepository.Object, lifetimeScope.Object);
             controller.Request = new HttpRequestMessage();
             controller.Configuration = new HttpConfiguration();
             var postResult = controller.DeleteMessage(deleteMessageReqDto);
@@ -274,7 +324,7 @@ namespace MessageTest.Tests.Controller
                     }
                 }));
 
-            var controller = new MessageController(messagePoRepository.Object, subjectPoRepository.Object, messageRepository.Object, subjectRepository.Object, lifetimeScope.Object);
+            var controller = new MessageController(messagePoRepository.Object, subjectPoRepository.Object, messageRepository.Object, subjectRepository.Object, messageCacheRepository.Object, lifetimeScope.Object);
             controller.Request = new HttpRequestMessage();
             controller.Configuration = new HttpConfiguration();
             var queryResult = controller.QueryMessage(queryMessageReqDto);
@@ -331,7 +381,7 @@ namespace MessageTest.Tests.Controller
                     //}
                 }));
 
-            var controller = new MessageController(messagePoRepository.Object, subjectPoRepository.Object, messageRepository.Object, subjectRepository.Object, lifetimeScope.Object);
+            var controller = new MessageController(messagePoRepository.Object, subjectPoRepository.Object, messageRepository.Object, subjectRepository.Object, messageCacheRepository.Object, lifetimeScope.Object);
             controller.Request = new HttpRequestMessage();
             controller.Configuration = new HttpConfiguration();
             var queryResult = controller.QueryMessage(queryMessageReqDto);

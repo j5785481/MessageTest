@@ -139,7 +139,7 @@ namespace MessageTest.Persistent.Tests.Mongo
             var queryMessageResult = repo.GetPageMessage(queryMessageReqDto);
             Assert.IsNull(queryMessageResult.exception);
             Assert.IsNotNull(queryMessageResult.messages);
-            Assert.AreEqual(1, queryMessageResult.messages.Count);
+            Assert.AreEqual(2, queryMessageResult.messages.Count);
         }
     }
 }

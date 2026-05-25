@@ -36,4 +36,8 @@
     <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Handler\JobEvent\" />
+  </ItemGroup>
+
 </Project>
