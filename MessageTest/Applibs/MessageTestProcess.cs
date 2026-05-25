@@ -43,50 +43,31 @@ namespace MessageTest.Applibs
 
             Task.Run(async () =>
             {
-                logger.Info("批次處理留言背景任務已啟動（每秒偵測一次）...");
+                logger.Info("批次處理留言 Producer 任務已啟動（每 5 秒發送一次事件）...");
 
                 while (_isProcessing)
                 {
                     try
                     {
-                        // 每次循環都建立一個獨立的生命週期範圍（Lifetime Scope）
-                        using (var scope = container.BeginLifetimeScope())
-                        {
-                            //// 1. 定義對應 Autofac 具名註冊的事件名稱
-                            //string eventName = "ProcessMessageAddJobEvent";
+                        // 💡 實作 Producer 端：不再直接呼叫 Handler，而是透過 RMQ 發送事件
+                        // 根據專案慣例，我們將事件發送到 "JobSchedule" 這個 Topic
+                        var eventData = new ProcessMessageAddJobEvent();
 
-                            //// 2. 透過 ResolveNamed 解析出對應的 Handler 介面
-                            //var handler = scope.ResolveNamed<IPubSubHandler<RabbitMqEventStream>>(eventName);
+                        RabbitMqProducer.Publish("JobSchedule", eventData);
 
-                            //// 3. 【完全對齊】帶入建構子要求的三個必要參數 (type, data, utcTimeStamp)
-                            //long currentUtcTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-
-                            //var dummyStream = new RabbitMqEventStream(
-                            //    type: eventName,
-                            //    data: string.Empty,
-                            //    utcTimeStamp: currentUtcTimestamp
-                            //);
-
-                            //// 4. 執行 Handle 觸發你的批次處理邏輯
-                            //handler.Handle(dummyStream);
-                            // 💡 直接解析類別本體，不要透過 Named 介面
-                            var handler = scope.Resolve<ProcessMessageAddJobEventHandler>();
-
-                            // 💡 直接呼叫，這時絕對會直接踩進你 Handle 方法的第一行斷點！
-                            handler.Handle(new RabbitMqEventStream("ProcessMessageAddJobEvent", string.Empty, 0L));
-                        }
+                        logger.Info($"[Producer] 已發送 ProcessMessageAddJobEvent 到 RMQ (JobSchedule) - {DateTime.Now:HH:mm:ss}");
                     }
                     catch (Exception ex)
                     {
-                        // 遵循前輩指示：捕捉所有可能崩潰的錯誤，維持排程不中斷，並記錄 Log
-                        logger.Error($"[背景排程驅動失敗] 詳細原因: {ex.ToString()}");
+                        // 捕捉錯誤，避免背景任務崩潰
+                        logger.Error($"[Producer 派發失敗] 詳細原因: {ex.Message}");
                     }
 
-                    // 休息 1000 毫秒（1秒）後，再進下一次迴圈
-                    await Task.Delay(1000);
+                    // 依照需求：每 5 秒 (5000 毫秒) 執行一次
+                    await Task.Delay(5000);
                 }
 
-                logger.Info("批次處理留言背景任務已安全停止。");
+                logger.Info("批次處理留言 Producer 任務已安全停止。");
             });
 
             Task.Run(() =>
