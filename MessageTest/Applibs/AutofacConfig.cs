@@ -62,7 +62,11 @@ namespace MessageTest.Applibs
                 .As(t => t.GetInterfaces().FirstOrDefault(i => i.Name == $"I{t.Name}"))
                 .SingleInstance();
 
-            builder.RegisterType<ProcessMessageAddJobEventHandler>().AsSelf().PropertiesAutowired();
+            //// 事件生產者
+            builder.RegisterType<Producer>()
+                .WithParameter("topicName", ConfigHelper.Topic)
+                .As<IProducer>()
+                .SingleInstance();
 
             container = builder.Build();
 

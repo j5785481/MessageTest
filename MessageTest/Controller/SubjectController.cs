@@ -52,30 +52,9 @@ namespace MessageTest.Controller
                 {
                     throw coldDownResult.ex;
                 }
-                if (coldDownResult.ok)
+                var result = new HttpResponseMessage(HttpStatusCode.OK);
+                if (!coldDownResult.ok)
                 {
-                    var addResult = this.subjectPoRepository.Add(input);
-
-                    if (addResult.exception != null)
-                    {
-                        throw addResult.exception;
-                    }
-                    var saveException = this.subjectRepository.Save(addResult.subject);
-                    if (saveException != null)
-                    {
-                        throw saveException;
-                    }
-                    var result = new HttpResponseMessage(HttpStatusCode.OK);
-                    result.Content = new StringContent(JsonConvert.SerializeObject(new AddSubjectResponseDto
-                    {
-                        Status = AddSubjectStatus.Success,
-                        Subject = addResult.subject
-                    }));
-                    return result;
-                }
-                else
-                {
-                    var result = new HttpResponseMessage(HttpStatusCode.OK);
                     result.Content = new StringContent(JsonConvert.SerializeObject(new AddSubjectResponseDto
                     {
                         Status = AddSubjectStatus.AddSujectColdDown,
@@ -83,6 +62,23 @@ namespace MessageTest.Controller
                     }));
                     return result;
                 }
+                var addResult = this.subjectPoRepository.Add(input);
+
+                if (addResult.exception != null)
+                {
+                    throw addResult.exception;
+                }
+                var saveException = this.subjectRepository.Save(addResult.subject);
+                if (saveException != null)
+                {
+                    throw saveException;
+                }
+                result.Content = new StringContent(JsonConvert.SerializeObject(new AddSubjectResponseDto
+                {
+                    Status = AddSubjectStatus.Success,
+                    Subject = addResult.subject
+                }));
+                return result;
             }
             catch (Exception ex)
             {
@@ -151,7 +147,7 @@ namespace MessageTest.Controller
             }
         }
         [HttpGet]
-        public HttpResponseMessage QuerySubject([FromBody] QuerySubjectRequestDto input)
+        public HttpResponseMessage QuerySubject([FromUri] QuerySubjectRequestDto input)
         {
             try
             {
@@ -182,23 +178,18 @@ namespace MessageTest.Controller
                 {
                     throw getByIdResult.exception;
                 }
-                if (getByIdResult.subject != null)
+                if (getByIdResult.subject == null) 
                 {
-                    logger.Trace($"mongo query have subject {JsonConvert.SerializeObject(getByIdResult.subject)}");
-                    finalSubject = getByIdResult.subject;
-                    var setException = this.subjectCacheRepository.Set(finalSubject);
-                    if (setException != null)
-                    {
-                        throw setException;
-                    }
-                    logger.Trace($"redis add subject {JsonConvert.SerializeObject(getByIdResult.subject)}");
-                    result.Content = new StringContent(JsonConvert.SerializeObject(new QuerySubjectResponseDto
-                    {
-                        Status = QuerySubjectStatus.Success,
-                        Subject = finalSubject
-                    }));
-                    return result;
+                    logger.Warn($"mongo query subject null");
                 }
+                logger.Trace($"mongo query have subject {JsonConvert.SerializeObject(getByIdResult.subject)}");
+                finalSubject = getByIdResult.subject;
+                var setRedisException = this.subjectCacheRepository.Set(finalSubject);
+                if (setRedisException != null)
+                {
+                    throw setRedisException;
+                }
+                logger.Trace($"redis save subject {JsonConvert.SerializeObject(getByIdResult.subject)}");
 
                 //針對MMSQL進行查詢
                 var queryResult = this.subjectPoRepository.Query(input);
@@ -206,34 +197,27 @@ namespace MessageTest.Controller
                 {
                     throw queryResult.exception;
                 }
-                if (queryResult.subject != null)
+                if (queryResult.subject == null)
                 {
-                    logger.Trace($"mmsql query have subject {JsonConvert.SerializeObject(queryResult.subject)}");
-                    finalSubject = queryResult.subject;
-                    var saveException = this.subjectRepository.Save(finalSubject);
-                    if (saveException != null)
-                    {
-                        throw saveException;
-                    }
-                    logger.Trace($"mongo add subject {JsonConvert.SerializeObject(queryResult.subject)}");
-                    var setException = this.subjectCacheRepository.Set(finalSubject);
-                    if (setException != null)
-                    {
-                        throw setException;
-                    }
-                    logger.Trace($"redis add subject {JsonConvert.SerializeObject(queryResult.subject)}");
-                    result.Content = new StringContent(JsonConvert.SerializeObject(new QuerySubjectResponseDto
-                    {
-                        Status = QuerySubjectStatus.Success,
-                        Subject = finalSubject
-                    }));
-                    return result;
+                    logger.Warn($"mssql query subject null");
                 }
-                logger.Info($"no this subject data {JsonConvert.SerializeObject(input)}");
-                // 上述都沒有取得資料
+                logger.Trace($"mmsql query have subject {JsonConvert.SerializeObject(queryResult.subject)}");
+                finalSubject = queryResult.subject;
+                var saveMongoException = this.subjectRepository.Save(finalSubject);
+                if (saveMongoException != null)
+                {
+                    throw saveMongoException;
+                }
+                logger.Trace($"mongo add subject {JsonConvert.SerializeObject(queryResult.subject)}");
+                var setException = this.subjectCacheRepository.Set(finalSubject);
+                if (setException != null)
+                {
+                    throw setException;
+                }
+                logger.Trace($"redis add subject {JsonConvert.SerializeObject(queryResult.subject)}");
                 result.Content = new StringContent(JsonConvert.SerializeObject(new QuerySubjectResponseDto
                 {
-                    Status = QuerySubjectStatus.NoHaveSubject,
+                    Status = QuerySubjectStatus.Success,
                     Subject = finalSubject
                 }));
                 return result;

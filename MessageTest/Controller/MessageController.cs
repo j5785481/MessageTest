@@ -175,7 +175,7 @@ namespace MessageTest.Controller
         }
 
         [HttpGet]
-        public HttpResponseMessage QueryMessage([FromBody] QueryMessageRequestDto input)
+        public HttpResponseMessage QueryMessage([FromUri] QueryMessageRequestDto input)
         {
             try
             {

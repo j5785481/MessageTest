@@ -10,6 +10,7 @@ namespace MessageTest.Applibs
     using Live.PubSub.Core;
     using MessageTest.Domain.JobEvent;
     using MessageTest.Handler.Rmq.JobSchedule;
+    using MessageTest.Hubs;
     using Newtonsoft.Json;
     using NLog;
     using RabbitMQ.Client;
@@ -44,29 +45,31 @@ namespace MessageTest.Applibs
             Task.Run(async () =>
             {
                 logger.Info("批次處理留言 Producer 任務已啟動（每 5 秒發送一次事件）...");
-
-                while (_isProcessing)
+                using (var scope = container.BeginLifetimeScope())
                 {
-                    try
+                    while (_isProcessing)
                     {
-                        // 💡 實作 Producer 端：不再直接呼叫 Handler，而是透過 RMQ 發送事件
-                        // 根據專案慣例，我們將事件發送到 "JobSchedule" 這個 Topic
-                        var eventData = new ProcessMessageAddJobEvent();
+                        try
+                        {
+                            // 💡 實作 Producer 端：不再直接呼叫 Handler，而是透過 RMQ 發送事件
+                            // 根據專案慣例，我們將事件發送到 "JobSchedule" 這個 Topic
+                            var producer = scope.Resolve<IProducer>();
+                            var eventData = new ProcessMessageAddJobEvent();
 
-                        RabbitMqProducer.Publish("JobSchedule", eventData);
+                            producer.Publish(eventData);
 
-                        logger.Info($"[Producer] 已發送 ProcessMessageAddJobEvent 到 RMQ (JobSchedule) - {DateTime.Now:HH:mm:ss}");
+                            logger.Info($"[Producer] 已發送 ProcessMessageAddJobEvent 到 RMQ (JobSchedule) - {DateTime.Now:HH:mm:ss}");
+                        }
+                        catch (Exception ex)
+                        {
+                            // 捕捉錯誤，避免背景任務崩潰
+                            logger.Error($"[Producer 派發失敗] 詳細原因: {ex.Message}");
+                        }
+
+                        // 依照需求：每 5 秒 (5000 毫秒) 執行一次
+                        await Task.Delay(5000);
                     }
-                    catch (Exception ex)
-                    {
-                        // 捕捉錯誤，避免背景任務崩潰
-                        logger.Error($"[Producer 派發失敗] 詳細原因: {ex.Message}");
-                    }
-
-                    // 依照需求：每 5 秒 (5000 毫秒) 執行一次
-                    await Task.Delay(5000);
                 }
-
                 logger.Info("批次處理留言 Producer 任務已安全停止。");
             });
 
@@ -105,7 +108,7 @@ namespace MessageTest.Applibs
 		/// <param name="str"></param>
 		private static void OnAlert(string str)
         {
-            logger.Warn($"ForumMessageSystem RMQ OnAlert:{str}");
+            logger.Warn($"MessageTest RMQ OnAlert:{str}");
             Console.WriteLine(str);
         }
     }
