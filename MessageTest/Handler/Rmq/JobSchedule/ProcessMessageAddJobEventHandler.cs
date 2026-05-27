@@ -40,27 +40,38 @@ namespace MessageTest.Handler.Rmq.JobSchedule
             try
             {
                 var cache = messageCacheRepository.Pop<Message>(5);
-                if (cache.exception != null) throw cache.exception;
-                if (cache.actions == null || !cache.actions.Any()) return true;
+                if (cache.exception != null)
+                {
+                    logger.Error($"ProcessMessageAddJobEventHandler messageCacheRepository.Pop expcetion{JsonConvert.SerializeObject(cache.exception)}");
+                }
+                if (cache.actions == null || !cache.actions.Any())
+                {
+                    logger.Warn($"ProcessMessageAddJobEventHandler messageCacheRepository.Pop No Data");
+                    return true;
+                }
 
                 List<Message> messages = cache.actions.ToList();
-
+                logger.Info($"ProcessMessageAddJobEventHandler Redis message {messages}");
                 // MSSQL 批次儲存訊息
                 var batchAddResult = this.messagePoRepository.BatchAdd(messages);
                 if (batchAddResult.exception != null)
                 {
                     logger.Error($"ProcessMessageAddJobEventHandler messagePoRepository.BatchAdd expcetion{JsonConvert.SerializeObject(batchAddResult.exception)}");
+                    return true;
                 }
+
                 List<int> subjectId = messages.Select(x => x.SubjectId).ToList();
                 // 透過MSSQL查subject物件
                 var subjectGetByIds = this.subjectPoRepository.GetByIds(subjectId);
                 if (subjectGetByIds.exception != null)
                 {
                     logger.Error($"ProcessMessageAddJobEventHandler messagePoRepository.GetByIds expcetion{JsonConvert.SerializeObject(subjectGetByIds.exception)}");
+                    return true;
                 }
                 if (subjectGetByIds.subjects == null || subjectGetByIds.subjects.Count == 0) 
                 {
                     logger.Warn($"ProcessMessageAddJobEventHandler messagePoRepository.GetByIds subjectGetByIds.subjects == null || subjectGetByIds.subjects.Count == 0");
+                    return true;
                 }
                 // 先統計這批訊息中，每個 SubjectId 分別有幾筆新留言
                 var messageCountsBySubject = messages
@@ -80,26 +91,27 @@ namespace MessageTest.Handler.Rmq.JobSchedule
                 if (batchUpsert.exception != null)
                 {
                     logger.Error($"ProcessMessageAddJobEventHandler subjectPoRepository.BatchUpsert expcetion{JsonConvert.SerializeObject(batchUpsert.exception)}");
+                    return true;
                 }
                 if (batchUpsert.subjects == null || batchUpsert.subjects.Count == 0)
                 {
                     logger.Warn($"ProcessMessageAddJobEventHandler subjectPoRepository.BatchUpsert batchUpsert.subjects == null || batchUpsert.subjects.Count == 0");
+                    return true;
                 }
                 // 批次儲存Mongo subject
                 var batchUpsertExpection = this.subjectRepository.BatchSave(batchUpsert.subjects);
                 if (batchUpsertExpection != null)
                 {
                     logger.Error($"ProcessMessageAddJobEventHandler subjectRepository.BatchSave expcetion{JsonConvert.SerializeObject(batchUpsertExpection)}");
+                    return true;
                 }
-                if (batchAddResult.messages == null || batchAddResult.messages.Count == 0)
-                {
-                    logger.Warn($"ProcessMessageAddJobEventHandler subjectRepository.BatchSave batchAddResult.messages == null || batchAddResult.messages.Count == 0");
-                }
+                
                 // 批次存入Mongo message
-                var batchSaveExpection = this.messageRepository.BatchSave(batchAddResult.messages);
+                var batchSaveExpection = this.messageRepository.BatchSave(messages);
                 if (batchSaveExpection != null)
                 {
                     logger.Error($"ProcessMessageAddJobEventHandler messageRepository.BatchSave expcetion{JsonConvert.SerializeObject(batchSaveExpection)}");
+                    return true;
                 }
                 return true;
             }

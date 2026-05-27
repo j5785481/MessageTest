@@ -77,6 +77,7 @@ namespace MessageTest.Controller
                     }));
                     return result;
                 }
+                logger.Info($"add message scucess {JsonConvert.SerializeObject(input)}");
                 result.Content = new StringContent(JsonConvert.SerializeObject(new AddMessageResponseDto
                 {
                     Status = AddMessageStatus.Success,

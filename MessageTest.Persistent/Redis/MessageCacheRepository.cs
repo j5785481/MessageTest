@@ -24,8 +24,9 @@ namespace MessageTest.Persistent.Redis
             try
             {
                 string fullKey = $"{AffixKey}:{CacheKey}";
-                Conn.GetDatabase(DataBase)
-                    .ListRightPush(fullKey, JsonConvert.SerializeObject(actions));
+                var values = actions.Select(a => (RedisValue)JsonConvert.SerializeObject(a)).ToArray();
+                Conn.GetDatabase(DataBase).ListRightPush(fullKey, values);
+
                 return null;
             }
             catch (Exception ex)

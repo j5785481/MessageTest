@@ -195,7 +195,7 @@ namespace MessageTest.Persistent.Sql
                     foreach (var subjectId in subjectIds)
                     {
                         var dr = udt.NewRow();
-                        dr[nameof(SubjectPo.f_id)] = subjectIds;
+                        dr[nameof(SubjectPo.f_id)] = subjectId;
                         udt.Rows.Add(dr);
                     }
                     var result = cn.Query<SubjectPo>(
