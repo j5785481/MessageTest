@@ -37,12 +37,12 @@ namespace MessageTest.Tests.Handler.JobEvent
             lifetimeScopeMock.Setup(x => x.BeginLifetimeScope()).Returns(new Mock<ILifetimeScope>().Object);
 
             handler = new ProcessMessageAddJobEventHandler(
-                lifetimeScopeMock.Object,
                 messageCacheRepoMock.Object,
                 messagePoRepoMock.Object,
                 messageRepoMock.Object,
                 subjectPoRepoMock.Object,
-                subjectRepoMock.Object
+                subjectRepoMock.Object,
+                lifetimeScopeMock.Object
             );
         }
 

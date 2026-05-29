@@ -34,8 +34,15 @@ namespace MessageTest.Domain.Repository
         /// <summary>
         /// 查詢主題資訊by SubjectId
         /// </summary>
-        /// <param name="subjectId">刪除主題的ID</param>
+        /// <param name="subjectId">查詢主題的ID</param>
         /// <returns>主題所有資訊</returns>
         (Exception exception, Subject subject) GetById(int subjectId);
+
+        /// <summary>
+        /// 批次查詢主題資訊by SubjectIds
+        /// </summary>
+        /// <param name="subjectIds">查詢主題的IDs</param>
+        /// <returns>主題所有資訊</returns>
+        (Exception exception, List<Subject> subjects) GetByIds(List<int> subjectIds);
     }
 }

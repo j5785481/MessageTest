@@ -92,6 +92,19 @@ namespace MessageTest.Persistent.Mongo
             }
         }
 
+        public (Exception exception, List<Subject> subjects) GetByIds(List<int> subjectIds)
+        {
+            try
+            {
+                var rs = collection.Find(Builders<Subject>.Filter.In(p => p.Id, subjectIds)).ToList();
+                return (null, rs);
+            }
+            catch (Exception ex)
+            {
+                return (ex, null);
+            }
+        }
+
         public Exception BatchSave(List<Subject> subjects)
         {
             try
