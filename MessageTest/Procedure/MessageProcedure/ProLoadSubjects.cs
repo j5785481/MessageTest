@@ -50,7 +50,7 @@ namespace MessageTest.Procedure.MessageProcedure
                 logger.Error(mssqlGetByIdsResult.exception, "process error: mssql subject get by ids expection");
                 return ctx;
             }
-            if (mssqlGetByIdsResult.subjects == null || mssqlGetByIdsResult.subjects.Any())
+            if (mssqlGetByIdsResult.subjects == null || !mssqlGetByIdsResult.subjects.Any())
             {
                 ctx.Exception = new MessageException(MessageProcedureErrorCode.MssqlSubjectGetByIdsFail, "process error: mssql subject get by ids fail");
                 logger.Warn(mssqlGetByIdsResult.exception, "process error: mssql subject get by ids fail");

@@ -11,6 +11,7 @@ namespace MessageTest.Domain.DTO
         public string UserId { get; set; }
         public int SubjectId { get; set; }
         public string Content { get; set; }
+        public int Floor { get; set; }
         public long ClientTimeStamp { get; set; }
         public long CreateTimeStamp { get; set; }
     }

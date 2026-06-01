@@ -30,9 +30,15 @@ namespace MessageTest.Procedure.MessageProcedure
                 ctx.Exception = querySubjectResult.exception;
                 logger.Warn("process error: mongo get by id has not subject");
             }
-
+            int currentMessageCount;
             if (querySubjectResult.subject != null)
             {
+                currentMessageCount = querySubjectResult.subject.MessageCount;
+                foreach (var message in param.Messages)
+                {
+                    currentMessageCount++;
+                    message.Floor = currentMessageCount;
+                }
                 ctx.subject = querySubjectResult.subject;
                 ctx.messages = param.Messages;
                 return ctx;
@@ -51,6 +57,13 @@ namespace MessageTest.Procedure.MessageProcedure
                 ctx.Exception = new MessageException(MessageProcedureErrorCode.QuerySubjectNoExsit, $"mssql get by id has not subject");
                 logger.Warn("process error: mssql get by id has not subject");
                 return ctx;
+            }
+            
+            currentMessageCount = querySubjectPoResult.subject.MessageCount;
+            foreach (var message in param.Messages)
+            {
+                currentMessageCount++;
+                message.Floor = currentMessageCount;
             }
             ctx.subject = querySubjectPoResult.subject;
             ctx.messages = param.Messages;

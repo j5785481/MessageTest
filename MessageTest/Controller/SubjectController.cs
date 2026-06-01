@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using Autofac;
+using MessageTest.DistributedLock;
 using MessageTest.Domain.DTO;
 using MessageTest.Domain.Model;
 using MessageTest.Domain.Repository;
@@ -96,49 +97,58 @@ namespace MessageTest.Controller
                 {
                     logger.Info($"DeleteSubject messageRepository.GetById expection{JsonConvert.SerializeObject(getByIdResult.exception)}");
                 }
-                List<DeleteMessageRequestDto> deleteMessageReqDtos = getByIdResult.messages
-                    .Select(msg => new DeleteMessageRequestDto
+                using (var scope = lifetimeScope.BeginLifetimeScope())
+                {
+                    var locker = scope.Resolve<ISubjectLocker>();
+                    using (var red = locker.GrabLock(subjectId))
                     {
-                        UserId = msg.UserId,
-                        MessageId = msg.Id,
-                        SubjectId = msg.SubjectId
-                    })
-                    .ToList();
-                var batchDeleteResult = this.messagePoRepository.BatchDelete(deleteMessageReqDtos);
-                if (batchDeleteResult.exception != null)
-                {
-                    logger.Info($"DeleteSubject messagePoRepository.BatchDelete expection{JsonConvert.SerializeObject(batchDeleteResult.exception)}");
-                }
-                List<string> messageIds = batchDeleteResult.messages
-                    .Select(msg => msg.Id).ToList();
-                var batchDeleteExpection = this.messageRepository.BatchDelete(messageIds);
-                if(batchDeleteExpection != null)
-                {
-                    logger.Info($"DeleteSubject messageRepository.BatchDelete expection{JsonConvert.SerializeObject(batchDeleteExpection)}");
-                }
-                var deleteResult = this.subjectPoRepository.Delete(subjectId);
+                        if (!red.IsAcquired) throw new Exception($"lock unAcquired lockId:{red.LockId}");
 
-                if (deleteResult.exception != null)
-                {
-                    throw deleteResult.exception;
+                        List<DeleteMessageRequestDto> deleteMessageReqDtos = getByIdResult.messages
+                        .Select(msg => new DeleteMessageRequestDto
+                        {
+                            UserId = msg.UserId,
+                            MessageId = msg.Id,
+                            SubjectId = msg.SubjectId
+                        })
+                        .ToList();
+                        var batchDeleteResult = this.messagePoRepository.BatchDelete(deleteMessageReqDtos);
+                        if (batchDeleteResult.exception != null)
+                        {
+                            logger.Info($"DeleteSubject messagePoRepository.BatchDelete expection{JsonConvert.SerializeObject(batchDeleteResult.exception)}");
+                        }
+                        List<string> messageIds = batchDeleteResult.messages
+                            .Select(msg => msg.Id).ToList();
+                        var batchDeleteExpection = this.messageRepository.BatchDelete(messageIds);
+                        if (batchDeleteExpection != null)
+                        {
+                            logger.Info($"DeleteSubject messageRepository.BatchDelete expection{JsonConvert.SerializeObject(batchDeleteExpection)}");
+                        }
+                        var deleteResult = this.subjectPoRepository.Delete(subjectId);
+
+                        if (deleteResult.exception != null)
+                        {
+                            throw deleteResult.exception;
+                        }
+                        var deleteException = this.subjectRepository.Delete(deleteResult.subject.Id);
+                        if (deleteException != null)
+                        {
+                            throw deleteException;
+                        }
+                        var removeResult = this.subjectCacheRepository.Remove(deleteResult.subject.Id);
+                        if (removeResult.ex != null)
+                        {
+                            throw removeResult.ex;
+                        }
+                        var result = new HttpResponseMessage(HttpStatusCode.OK);
+                        result.Content = new StringContent(JsonConvert.SerializeObject(new DeleteSubjectResponseDto
+                        {
+                            Status = DeleteSubjectStatus.Success,
+                            Subject = deleteResult.subject
+                        }));
+                        return result;
+                    }
                 }
-                var deleteException = this.subjectRepository.Delete(deleteResult.subject.Id);
-                if (deleteException != null)
-                {
-                    throw deleteException;
-                }
-                var removeResult = this.subjectCacheRepository.Remove(deleteResult.subject.Id);
-                if (removeResult.ex != null)
-                {
-                    throw removeResult.ex;
-                }
-                var result = new HttpResponseMessage(HttpStatusCode.OK);
-                result.Content = new StringContent(JsonConvert.SerializeObject(new DeleteSubjectResponseDto
-                {
-                    Status = DeleteSubjectStatus.Success,
-                    Subject = deleteResult.subject
-                }));
-                return result;
             }
             catch (Exception ex)
             {

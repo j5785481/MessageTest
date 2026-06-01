@@ -4,6 +4,7 @@ using Autofac;
 using Autofac.Integration.WebApi;
 using ForumMessageSystem.Persistent.Core;
 using Live.PubSub.Core;
+using MessageTest.DistributedLock;
 using MessageTest.Domain.Repository;
 using MessageTest.Handler.Rmq.JobSchedule;
 
@@ -66,6 +67,15 @@ namespace MessageTest.Applibs
             builder.RegisterType<Producer>()
                 .WithParameter("topicName", ConfigHelper.Topic)
                 .As<IProducer>()
+                .SingleInstance();
+
+            // DistributedLock ioc
+            builder.RegisterAssemblyTypes(asm)
+                .Where(t => t.IsAssignableTo<IDistributedLock>())
+                .WithProperty("RedLockFactory", NoSqlService.DistributedLockService)
+                .WithProperty("AffixKey", NoSqlService.RedisAffixKey)
+                .As(t => t.GetInterfaces().FirstOrDefault(i => i.Name == $"I{t.Name}"))
+                .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies)
                 .SingleInstance();
 
             container = builder.Build();

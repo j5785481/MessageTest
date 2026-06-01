@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Autofac;
 using Live.PubSub.Core;
 using MessageTest.Applibs;
+using MessageTest.DistributedLock;
 using MessageTest.Domain.DTO;
 using MessageTest.Domain.Model;
 using MessageTest.Domain.Repository;
@@ -47,12 +48,12 @@ namespace MessageTest.Handler.Rmq.JobSchedule
                 using (var scope = lifetimeScope.BeginLifetimeScope())
                 {
                     var cache = messageCacheRepository.Pop<Message>(5);
-                    if (cache.exception == null)
+                    if (cache.exception != null)
                     {
                         logger.Error(cache.exception, "process error: load redis cache expection");
                         return true;
                     }
-                    if (cache.actions == null || cache.actions.Any())
+                    if (cache.actions == null || !cache.actions.Any())
                     {
                         logger.Warn("process error: load redis cache pop null or no data");
                         return true;
@@ -66,33 +67,38 @@ namespace MessageTest.Handler.Rmq.JobSchedule
                             SubjectId = g.Key,
                             Messages = g.ToList()
                         }).ToList();
+                    var locker = scope.Resolve<ISubjectLocker>();
                     foreach (var messageRequest in integrateMessageRequests)
                     {
-                        var ctx = BaseProcedure<CtxMessage>
-                        .From(new CtxMessage())
-                        .Execute(scope.Resolve<IProQuerySubject>(), messageRequest)
-                        .Execute(scope.Resolve<IProSaveMessage>())
-                        .Execute(scope.Resolve<IProUpdateMessageCount>())
-                        .Execute(scope.Resolve<IProUpsertSubjects>())
-                        .GetResult();
-                        if (ctx.TryGetException(out var exception) && exception is MessageException msgEx)
+                        using(var red = locker.GrabLock(messageRequest.SubjectId))
                         {
-                            switch (msgEx.ErrorCode)
+                            if (!red.IsAcquired) continue;
+
+                            var ctx = BaseProcedure<CtxMessage>
+                            .From(new CtxMessage())
+                            .Execute(scope.Resolve<IProQuerySubject>(), messageRequest)
+                            .Execute(scope.Resolve<IProSaveMessage>())
+                            .Execute(scope.Resolve<IProUpdateMessageCount>())
+                            .Execute(scope.Resolve<IProUpsertSubjects>())
+                            .GetResult();
+                            if (ctx.TryGetException(out var exception) && exception is MessageException msgEx)
                             {
-                                case MessageProcedureErrorCode.QuerySubjectNoExsit:
-                                    break;
-                                case MessageProcedureErrorCode.MssqlBatchAddFail:
-                                    break;
-                                case MessageProcedureErrorCode.MssqlSubjectGetByIdsFail:
-                                    break;
-                                case MessageProcedureErrorCode.MssqlSubjectUpsertFail:
-                                    break;
-                                default:
-                                    throw exception;
+                                switch (msgEx.ErrorCode)
+                                {
+                                    case MessageProcedureErrorCode.QuerySubjectNoExsit:
+                                        break;
+                                    case MessageProcedureErrorCode.MssqlBatchAddFail:
+                                        break;
+                                    case MessageProcedureErrorCode.MssqlSubjectGetByIdsFail:
+                                        break;
+                                    case MessageProcedureErrorCode.MssqlSubjectUpsertFail:
+                                        break;
+                                    default:
+                                        throw exception;
+                                }
                             }
                         }
                     }
-                    
                     return true;
                 }
             }

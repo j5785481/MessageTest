@@ -4,19 +4,19 @@ using RedLockNet.SERedis;
 
 namespace MessageTest.DistributedLock
 {
-    public interface IMessageLocker : IDistributedLock
+    public interface ISubjectLocker : IDistributedLock
     {
-        IRedLock GrabLock(string messageBoardId);
+        IRedLock GrabLock(int subjectId);
     }
-    public class MessageLocker : IMessageLocker
+    public class SubjectLocker : ISubjectLocker
     {
         public RedLockFactory RedLockFactory { get; set; }
         public string AffixKey { get; set; }
 
-        public IRedLock GrabLock(string messageId)
+        public IRedLock GrabLock(int subjectId)
         {
             return RedLockFactory.CreateLock(
-                $"{AffixKey}:{nameof(MessageLocker)}:{messageId}",
+                $"{AffixKey}:{nameof(SubjectLocker)}:{subjectId}",
                 TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(3), TimeSpan.FromMilliseconds(100));
         }
     }

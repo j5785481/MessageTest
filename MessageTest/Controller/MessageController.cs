@@ -65,6 +65,7 @@ namespace MessageTest.Controller
                     SubjectId = input.SubjectId,
                     Content = input.Content,
                     UserId = input.UserId,
+                    Floor = querySubject.subject.MessageCount + 1,
                     CreatedAt = nowTaipei,
                 };
                 var redisException = this.messageCacheRepository.Set(new[] { message });
