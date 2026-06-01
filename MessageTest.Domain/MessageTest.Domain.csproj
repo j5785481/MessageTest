@@ -52,6 +52,7 @@
     <Compile Include="DTO\DeleteMessageStatus.cs" />
     <Compile Include="DTO\DeleteSubjectResponseDto.cs" />
     <Compile Include="DTO\DeleteSubjectStatus.cs" />
+    <Compile Include="DTO\IntegrateMessageRequestDto.cs" />
     <Compile Include="DTO\QueryMessageRequestDto.cs" />
     <Compile Include="DTO\QueryMessageResponseDto.cs" />
     <Compile Include="DTO\QuerySubjectRequestDto.cs" />
