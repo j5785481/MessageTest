@@ -39,7 +39,7 @@ namespace MessageTest.Procedure.MessageProcedure
                 return ctx;
             }
             
-            if (cache.actions == null || !cache.actions.Any())
+            if (cache.actions == null || cache.actions.Any())
             {
                 ctx.Exception = new MessageException(MessageProcedureErrorCode.RedisHasNotData, $"Pop Redis data null or no data");
                 logger.Warn("process error: load redis cache pop null or no data");

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Autofac;
 using Live.PubSub.Core;
 using MessageTest.Applibs;
+using MessageTest.Domain.DTO;
 using MessageTest.Domain.Model;
 using MessageTest.Domain.Repository;
 using MessageTest.Hubs;
@@ -45,15 +46,53 @@ namespace MessageTest.Handler.Rmq.JobSchedule
             {
                 using (var scope = lifetimeScope.BeginLifetimeScope())
                 {
-                    var ctx = BaseProcedure<CtxMessage>
+                    var cache = messageCacheRepository.Pop<Message>(5);
+                    if (cache.exception == null)
+                    {
+                        logger.Error(cache.exception, "process error: load redis cache expection");
+                        return true;
+                    }
+                    if (cache.actions == null || cache.actions.Any())
+                    {
+                        logger.Warn("process error: load redis cache pop null or no data");
+                        return true;
+                    }
+
+                    //將Pop出來的資料透過SubjectId分組
+                    var integrateMessageRequests = cache.actions
+                        .GroupBy(m => m.SubjectId)
+                        .Select(g => new IntegrateMessageRequestDto
+                        {
+                            SubjectId = g.Key,
+                            Messages = g.ToList()
+                        }).ToList();
+                    foreach (var messageRequest in integrateMessageRequests)
+                    {
+                        var ctx = BaseProcedure<CtxMessage>
                         .From(new CtxMessage())
-                        .Execute(scope.Resolve<IProLoadCaches>())
+                        .Execute(scope.Resolve<IProQuerySubject>(), messageRequest)
                         .Execute(scope.Resolve<IProSaveMessage>())
-                        .Execute(scope.Resolve<IProLoadSubjects>())
                         .Execute(scope.Resolve<IProUpdateMessageCount>())
                         .Execute(scope.Resolve<IProUpsertSubjects>())
                         .GetResult();
-                    if (ctx.TryGetException(out var exception)) throw exception;
+                        if (ctx.TryGetException(out var exception) && exception is MessageException msgEx)
+                        {
+                            switch (msgEx.ErrorCode)
+                            {
+                                case MessageProcedureErrorCode.QuerySubjectNoExsit:
+                                    break;
+                                case MessageProcedureErrorCode.MssqlBatchAddFail:
+                                    break;
+                                case MessageProcedureErrorCode.MssqlSubjectGetByIdsFail:
+                                    break;
+                                case MessageProcedureErrorCode.MssqlSubjectUpsertFail:
+                                    break;
+                                default:
+                                    throw exception;
+                            }
+                        }
+                    }
+                    
                     return true;
                 }
             }

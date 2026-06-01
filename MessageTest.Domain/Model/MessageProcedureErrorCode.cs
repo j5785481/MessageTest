@@ -17,6 +17,11 @@ namespace MessageTest.Domain.Model
         Unknown = 0,
 
         /// <summary>
+        /// 主題不存在
+        /// </summary>
+        QuerySubjectNoExsit,
+
+        /// <summary>
         /// Redis Pop沒有資料
         /// </summary>
         RedisHasNotData,
@@ -32,8 +37,8 @@ namespace MessageTest.Domain.Model
         MssqlSubjectGetByIdsFail,
 
         /// <summary>
-        /// MSSQL批次Upsert沒返回資料
+        /// MSSQL Upsert沒返回資料
         /// </summary>
-        MssqlSubjectBatchUpsertFail,
+        MssqlSubjectUpsertFail,
     }
 }

@@ -14,14 +14,14 @@ namespace MessageTest.Procedure.MessageProcedure
     {
 
     }
-    public class ProUpsertSubjects : IProUpsertSubjects, IProcedureProcess<CtxMessage>
+    public class ProUpsertSubject : IProUpsertSubjects, IProcedureProcess<CtxMessage>
     {
         private readonly ISubjectPoRepository subjectPoRepository;
         private readonly ISubjectRepository subjectRepository;
         private readonly ILogger logger =
-        LogManager.GetLogger("MessageTest").WithProperty("Type", nameof(ProUpsertSubjects));
+        LogManager.GetLogger("MessageTest").WithProperty("Type", nameof(ProUpsertSubject));
 
-        public ProUpsertSubjects(ISubjectPoRepository subjectPoRepository, ISubjectRepository subjectRepository)
+        public ProUpsertSubject(ISubjectPoRepository subjectPoRepository, ISubjectRepository subjectRepository)
         {
             this.subjectPoRepository = subjectPoRepository;
             this.subjectRepository = subjectRepository;
@@ -29,22 +29,23 @@ namespace MessageTest.Procedure.MessageProcedure
 
         public CtxMessage Process(CtxMessage ctx)
         {
-            var mssqlUpsertResult = this.subjectPoRepository.BatchUpsert(ctx.subjects);
+            var mssqlUpsertResult = this.subjectPoRepository.Upsert(ctx.subject);
             if (mssqlUpsertResult.exception != null) 
             {
                 ctx.Exception = mssqlUpsertResult.exception;
-                logger.Error(mssqlUpsertResult.exception, "process error: mssql batch upsert expection");
+                logger.Error(mssqlUpsertResult.exception, "process error: mssql subject upsert expection");
                 return ctx;
             }
-            if (mssqlUpsertResult.subjects == null || mssqlUpsertResult.subjects.Any())
+            if (mssqlUpsertResult.subject == null)
             {
-                ctx.Exception = new MessageException(MessageProcedureErrorCode.MssqlSubjectBatchUpsertFail, $"process error: mssql batch upsert fail");
-                logger.Warn($"process error: mssql batch upsert fail {ctx.subjects}");
+                ctx.Exception = new MessageException(MessageProcedureErrorCode.MssqlSubjectUpsertFail, $"process error: mssql subject upsert fail");
+                logger.Warn($"process error: mssql batch upsert fail {ctx.subject}");
             }
-            var mongoUpsertExpcetion = this.subjectRepository.BatchSave(ctx.subjects);
+            var mongoUpsertExpcetion = this.subjectRepository.Save(ctx.subject);
             if (mongoUpsertExpcetion != null) 
             {
                 ctx.Exception = mongoUpsertExpcetion;
+                logger.Error(mongoUpsertExpcetion, "process error: mongo subject upsert expection");
                 return ctx;
             }
             return ctx;

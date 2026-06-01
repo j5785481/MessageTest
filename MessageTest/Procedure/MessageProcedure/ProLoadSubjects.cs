@@ -40,7 +40,7 @@ namespace MessageTest.Procedure.MessageProcedure
             }
             if (mongoGetByIdsResult.subjects.Count > 0)
             {
-                ctx.subjects = mongoGetByIdsResult.subjects;
+                //ctx.subjects = mongoGetByIdsResult.subjects;
                 return ctx;
             }
             var mssqlGetByIdsResult = this.subjectPoRepository.GetByIds(subjectIds);
@@ -56,7 +56,7 @@ namespace MessageTest.Procedure.MessageProcedure
                 logger.Warn(mssqlGetByIdsResult.exception, "process error: mssql subject get by ids fail");
                 return ctx;
             }
-            ctx.subjects = mssqlGetByIdsResult.subjects;
+            //ctx.subjects = mssqlGetByIdsResult.subjects;
             return ctx;
         }
     }
