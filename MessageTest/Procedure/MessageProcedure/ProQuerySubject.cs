@@ -25,7 +25,7 @@ namespace MessageTest.Procedure.MessageProcedure
         public CtxMessage Process(CtxMessage ctx, IntegrateMessageRequestDto param)
         {
             var querySubjectResult = this.subjectRepository.GetById(param.SubjectId);
-            if (querySubjectResult.exception == null)
+            if (querySubjectResult.exception != null)
             {
                 ctx.Exception = querySubjectResult.exception;
                 logger.Warn("process error: mongo get by id has not subject");
@@ -45,7 +45,7 @@ namespace MessageTest.Procedure.MessageProcedure
             }
 
             var querySubjectPoResult = this.subjectPoRepository.GetById(param.SubjectId);
-            if (querySubjectPoResult.exception == null)
+            if (querySubjectPoResult.exception != null)
             {
                 ctx.Exception = querySubjectPoResult.exception;
                 logger.Error(querySubjectPoResult.exception, "process error: mssql get by id expection");

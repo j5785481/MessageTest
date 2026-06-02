@@ -72,7 +72,15 @@ namespace MessageTest.Handler.Rmq.JobSchedule
                     {
                         using(var red = locker.GrabLock(messageRequest.SubjectId))
                         {
-                            if (!red.IsAcquired) continue;
+                            if (!red.IsAcquired)
+                            {
+                                var rollbackExpection = this.messageCacheRepository.Set(messageRequest.Messages);
+                                if (rollbackExpection != null)
+                                {
+                                    logger.Error(rollbackExpection, $"process error: rollback redis cache expection {messageRequest.Messages}");
+                                }
+                                continue;
+                            }
 
                             var ctx = BaseProcedure<CtxMessage>
                             .From(new CtxMessage())
