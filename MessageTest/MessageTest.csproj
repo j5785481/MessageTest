@@ -272,7 +272,7 @@
     <Compile Include="Procedure\MessageProcedure\ProQuerySubject.cs" />
     <Compile Include="Procedure\MessageProcedure\ProSaveMessage.cs" />
     <Compile Include="Procedure\MessageProcedure\ProUpdateMessageCount.cs" />
-    <Compile Include="Procedure\MessageProcedure\ProUpsertSubject.cs" />
+    <Compile Include="Procedure\MessageProcedure\ProUpsertSubjects.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />

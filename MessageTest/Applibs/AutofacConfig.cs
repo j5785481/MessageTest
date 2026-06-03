@@ -6,7 +6,7 @@ using ForumMessageSystem.Persistent.Core;
 using Live.PubSub.Core;
 using MessageTest.DistributedLock;
 using MessageTest.Domain.Repository;
-using MessageTest.Handler.Rmq.JobSchedule;
+using MessageTest.Lib.Procedure.Implements;
 
 namespace MessageTest.Applibs
 {
@@ -67,6 +67,13 @@ namespace MessageTest.Applibs
             builder.RegisterType<Producer>()
                 .WithParameter("topicName", ConfigHelper.Topic)
                 .As<IProducer>()
+                .SingleInstance();
+
+            // procedure process ioc（以泛型介面註冊所有已實作的 process）
+            builder.RegisterAssemblyTypes(Assembly.Load("MessageTest"))
+                .Where(t => t.IsAssignableTo<IProcedureProcess>())
+                .As(t => t.GetInterfaces().FirstOrDefault(i => i.Name == $"I{t.Name}"))
+                .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies)
                 .SingleInstance();
 
             // DistributedLock ioc

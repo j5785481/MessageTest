@@ -75,6 +75,7 @@ namespace MessageTest.Persistent.Sql
                     udt.Columns.Add(nameof(MessagePo.f_subjectId), typeof(int));
                     udt.Columns.Add(nameof(MessagePo.f_content), typeof(string));
                     udt.Columns.Add(nameof(MessagePo.f_userId), typeof(string));
+                    udt.Columns.Add(nameof(MessagePo.f_floor), typeof(int));
                     udt.Columns.Add(nameof(MessagePo.f_createdAt), typeof(DateTime));
 
                     foreach (var message in input)
@@ -84,6 +85,7 @@ namespace MessageTest.Persistent.Sql
                         dr[nameof(MessagePo.f_subjectId)] = message.SubjectId;
                         dr[nameof(MessagePo.f_content)] = message.Content;
                         dr[nameof(MessagePo.f_userId)] = message.UserId;
+                        dr[nameof(MessagePo.f_floor)] = message.Floor;
                         dr[nameof(MessagePo.f_createdAt)] = message.CreatedAt;
                         udt.Rows.Add(dr);
                     }
@@ -108,6 +110,7 @@ namespace MessageTest.Persistent.Sql
                         Id = po.f_id, 
                         Content = po.f_content,
                         UserId = po.f_userId,
+                        Floor = po.f_floor,
                         CreatedAt = po.f_createdAt,
                     }).ToList();
 
@@ -161,6 +164,7 @@ namespace MessageTest.Persistent.Sql
                         Id = po.f_id, // 此時 po.f_id 已經是 string 欄位了
                         Content = po.f_content,
                         UserId = po.f_userId,
+                        Floor = po.f_floor,
                         CreatedAt = po.f_createdAt,
                     }).ToList();
 
@@ -230,6 +234,7 @@ namespace MessageTest.Persistent.Sql
                         Id = po.f_id,
                         Content = po.f_content,
                         UserId = po.f_userId,
+                        Floor = po.f_floor,
                         CreatedAt = po.f_createdAt,
                     }).ToList();
 
@@ -264,6 +269,7 @@ namespace MessageTest.Persistent.Sql
                         Id = po.f_id,
                         Content = po.f_content,
                         UserId = po.f_userId,
+                        Floor = po.f_floor,
                         CreatedAt = po.f_createdAt,
                     }).ToList();
 

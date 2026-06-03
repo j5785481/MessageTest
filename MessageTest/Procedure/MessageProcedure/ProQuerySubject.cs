@@ -22,6 +22,13 @@ namespace MessageTest.Procedure.MessageProcedure
 
         private readonly ISubjectPoRepository subjectPoRepository;
         private readonly ISubjectRepository subjectRepository;
+
+        public ProQuerySubject(ISubjectPoRepository subjectPoRepository, ISubjectRepository subjectRepository)
+        {
+            this.subjectPoRepository = subjectPoRepository;
+            this.subjectRepository = subjectRepository;
+        }
+
         public CtxMessage Process(CtxMessage ctx, IntegrateMessageRequestDto param)
         {
             var querySubjectResult = this.subjectRepository.GetById(param.SubjectId);

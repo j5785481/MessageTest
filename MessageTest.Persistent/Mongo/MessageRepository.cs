@@ -115,6 +115,7 @@ namespace MessageTest.Persistent.Mongo
                     .SetOnInsert(p => p.Id, message.Id)
                     .SetOnInsert(p => p.Content, message.Content)
                     .SetOnInsert(p => p.UserId, message.UserId)
+                    .SetOnInsert(p => p.Floor, message.Floor)
                     .SetOnInsert(p => p.CreatedAt, message.CreatedAt);
                 var filter = Builders<Message>.Filter.Eq(p => p.Id, message.Id);
                 collection.UpdateOne(filter, updateScript, new UpdateOptions
@@ -140,6 +141,7 @@ namespace MessageTest.Persistent.Mongo
                         .SetOnInsert(p => p.Id, msg.Id)
                         .SetOnInsert(p => p.Content, msg.Content)
                         .SetOnInsert(p => p.UserId, msg.UserId)
+                        .SetOnInsert(p => p.Floor, msg.Floor)
                         .SetOnInsert(p => p.CreatedAt, msg.CreatedAt);
                     var filter = Builders<Message>.Filter.Eq(p => p.Id, msg.Id);
                     return (WriteModel<Message>)new UpdateOneModel<Message>(filter, update)

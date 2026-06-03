@@ -14,14 +14,14 @@ namespace MessageTest.Procedure.MessageProcedure
     {
 
     }
-    public class ProUpsertSubject : IProUpsertSubjects, IProcedureProcess<CtxMessage>
+    public class ProUpsertSubjects : IProUpsertSubjects, IProcedureProcess<CtxMessage>
     {
         private readonly ISubjectPoRepository subjectPoRepository;
         private readonly ISubjectRepository subjectRepository;
         private readonly ILogger logger =
-        LogManager.GetLogger("MessageTest").WithProperty("Type", nameof(ProUpsertSubject));
+        LogManager.GetLogger("MessageTest").WithProperty("Type", nameof(ProUpsertSubjects));
 
-        public ProUpsertSubject(ISubjectPoRepository subjectPoRepository, ISubjectRepository subjectRepository)
+        public ProUpsertSubjects(ISubjectPoRepository subjectPoRepository, ISubjectRepository subjectRepository)
         {
             this.subjectPoRepository = subjectPoRepository;
             this.subjectRepository = subjectRepository;
